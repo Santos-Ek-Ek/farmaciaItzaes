@@ -50,7 +50,6 @@
     </div>
     <div class="container">
         <div class="row mt-lg-n10 mt-md-n11 mt-n10 justify-content-center">
-            <!-- Cambiado a col-sm-10 y col-md-8 para pantallas pequeñas -->
             <div class="col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
                 <div class="card z-index-0" style="border: 1px solid #dee2e6; border-radius: 0.5rem;">
                     <div class="card-header text-center pt-4">

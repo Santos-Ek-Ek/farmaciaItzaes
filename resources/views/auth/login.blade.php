@@ -29,6 +29,12 @@
                 padding-right: 15px;
             }
         }
+        .pharmacy-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -48,6 +54,7 @@
             <div class="col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto">
                 <div class="card z-index-0" style="border: 1px solid #dee2e6; border-radius: 0.5rem;">
                     <div class="card-header text-center pt-4">
+                        <div class="pharmacy-name">Farmacia Itzaes</div>
                         <h5>Iniciar Sesión</h5>
                     </div>
                     <div class="card-body px-3 px-sm-4">

@@ -175,40 +175,48 @@ document.querySelectorAll('.btn-eliminar').forEach(btn => {
     });
 });
 
+
 function aplicarFiltros() {
+    const searchTerm = document.getElementById('buscarProducto').value.toLowerCase().trim();
     const categoriaId = document.getElementById('filtroCategoria').value;
     const rangoPrecio = document.getElementById('filtroPrecio').value;
-    const rows = document.querySelectorAll('tbody tr');
     
-    rows.forEach(row => {
-        let mostrar = true;
+    document.querySelectorAll('tbody tr').forEach(row => {
+        // Datos del producto - con trim() para eliminar espacios extras
+        const nombre = row.querySelector('.product-name').textContent.toLowerCase().trim();
+        const descripcion = row.querySelector('.product-desc').textContent.toLowerCase().trim();
+        const categoria = row.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+        const precio = parseFloat(row.querySelector('td:nth-child(5)').textContent.replace(/[^\d.]/g, ''));
+        
+        // Filtro de búsqueda mejorado
+        const coincideBusqueda = !searchTerm || 
+                               nombre.includes(searchTerm) || 
+                               descripcion.includes(searchTerm) ||
+                               categoria.includes(searchTerm) ||
+                               // Búsqueda por palabras individuales
+                               searchTerm.split(' ').some(term => 
+                                   term && (nombre.includes(term) || 
+                                           descripcion.includes(term) ||
+                                           categoria.includes(term))
+                               );
         
         // Filtro por categoría
-        if (categoriaId) {
-            const categoriaCell = row.querySelector('td:nth-child(2)');
-            const categoriaNombre = categoriaCell.textContent.trim();
-            const categoriaOption = Array.from(document.querySelectorAll('#filtroCategoria option')).find(opt => opt.textContent.trim() === categoriaNombre);
-            
-            if (!(categoriaOption && categoriaOption.value === categoriaId)) {
-                mostrar = false;
-            }
-        }
+        const coincideCategoria = !categoriaId || 
+                                (document.querySelector(`#filtroCategoria option[value="${categoriaId}"]`)?.textContent.trim().toLowerCase() === categoria.toLowerCase());
         
         // Filtro por precio
-        if (mostrar && rangoPrecio) {
+        let coincidePrecio = true;
+        if (rangoPrecio) {
             const [min, max] = rangoPrecio.split('-').map(Number);
-            const precioText = row.querySelector('td:nth-child(5)').textContent;
-            const precio = parseFloat(precioText.replace(/[^\d.]/g, ''));
-            
-            if (isNaN(precio) || precio < min || (max !== 0 && precio > max)) { 
-                mostrar = false;
-            }
+            coincidePrecio = precio >= min && (max === 0 || precio <= max);
         }
         
-        row.style.display = mostrar ? '' : 'none';
+        // Mostrar u ocultar según los filtros
+        row.style.display = (coincideBusqueda && coincideCategoria && coincidePrecio) ? '' : 'none';
     });
 }
 
-// Asignar eventos a ambos filtros
+// Asignar eventos a todos los filtros
+document.getElementById('buscarProducto').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroCategoria').addEventListener('change', aplicarFiltros);
 document.getElementById('filtroPrecio').addEventListener('change', aplicarFiltros);

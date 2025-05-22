@@ -60,7 +60,7 @@
    </div>
    <div class="p-4">
     <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4">
-     <input type="text" class="form-control form-control-sm w-100 w-sm-auto" placeholder="Buscar Producto" aria-label="Buscar Producto"/>
+<input type="text" id="buscarProducto" class="form-control form-control-sm w-100 w-sm-auto" placeholder="Buscar Producto..." aria-label="Buscar Producto"/>
      <select class="form-select form-select-sm w-auto" aria-label="Rows per page">
       <option selected>7</option>
       <option>10</option>

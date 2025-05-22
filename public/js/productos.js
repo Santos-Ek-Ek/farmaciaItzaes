@@ -1,38 +1,77 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Configuración del modal
-        const agregarProductoModal = new bootstrap.Modal(document.getElementById('agregarProductoModal'));
-        
-       document.getElementById('btnGuardarProducto').addEventListener('click', function() {
+// Configuración del modal
+const agregarProductoModal = new bootstrap.Modal(document.getElementById('agregarProductoModal'));
+
+document.getElementById('btnGuardarProducto').addEventListener('click', function() {
     const form = document.getElementById('formAgregarProducto');
     const formData = new FormData(form);
     
-    fetch('{{ route("productos.store") }}', {
+    // Obtener el token CSRF del meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    
+    // Usar la URL del atributo action del formulario
+    const url = form.getAttribute('action');
+    
+    fetch(url, {
         method: 'POST',
         body: formData,
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+        }
+        return response.json();
+    })
     .then(data => {
         if(data.success) {
-            // Mostrar mensaje de éxito
-            alert(data.message);
-            
-            // Cerrar el modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('agregarProductoModal'));
-            modal.hide();
-            
-            // Recargar la página o actualizar la tabla
-            location.reload();
+            // Mostrar mensaje de éxito con SweetAlert o similar
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message,
+                confirmButtonText: 'Aceptar'
+            }).then(() => {
+                // Cerrar el modal
+                agregarProductoModal.hide();
+                // Recargar la página
+                location.reload();
+            });
         } else {
-            alert('Error: ' + data.message);
+            // Mostrar errores de validación
+            if (data.errors) {
+                let errors = '';
+                for (const error in data.errors) {
+                    errors += `${data.errors[error][0]}\n`;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de validación',
+                    text: errors,
+                    confirmButtonText: 'Aceptar'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    confirmButtonText: 'Aceptar'
+                });
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Ocurrió un error al guardar el producto');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Ocurrió un error al guardar el producto',
+            confirmButtonText: 'Aceptar'
+        });
     });
 });
     });
@@ -48,45 +87,52 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Función para cargar los datos del producto
-    function cargarDatosProducto(id) {
-        fetch(`/productos/${id}/edit`)
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    const producto = data.producto;
+function cargarDatosProducto(id) {
+    fetch(`/productos/${id}/edit`)
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                const producto = data.producto;
+                
+                // Llenar el formulario con los datos del producto
+                document.getElementById('edit_id').value = producto.id;
+                document.getElementById('edit_nombre').value = producto.nombre;
+                document.getElementById('edit_cantidad').value = producto.cantidad;
+                document.getElementById('edit_precio').value = producto.precio;
+                document.getElementById('edit_dia_llegada').value = producto.dia_llegada;
+                document.getElementById('edit_fecha_caducidad').value = producto.fecha_caducidad;
+                document.getElementById('edit_categoria_id').value = producto.categoria_id;
+                document.getElementById('edit_unidad_medida').value = producto.unidad_medida;
+                document.getElementById('edit_descripcion').value = producto.descripcion;
+                
+                // Mostrar vista previa de la imagen si existe
+                const imagenPreview = document.getElementById('edit_imagen_preview');
+                if(producto.imagen) {
+                    // Usar URL base del sitio
+                    const baseUrl = window.location.origin;
+                    imagenPreview.src = baseUrl + '/' + producto.imagen;
+                    imagenPreview.style.display = 'block';
                     
-                    // Llenar el formulario con los datos del producto
-                    document.getElementById('edit_id').value = producto.id;
-                    document.getElementById('edit_nombre').value = producto.nombre;
-                    document.getElementById('edit_cantidad').value = producto.cantidad;
-                    document.getElementById('edit_precio').value = producto.precio;
-                    document.getElementById('edit_dia_llegada').value = producto.dia_llegada;
-                    document.getElementById('edit_fecha_caducidad').value = producto.fecha_caducidad;
-                    document.getElementById('edit_categoria_id').value = producto.categoria_id;
-                    document.getElementById('edit_unidad_medida').value = producto.unidad_medida;
-                    document.getElementById('edit_descripcion').value = producto.descripcion;
-                    
-                    // Mostrar vista previa de la imagen si existe
-                    const imagenPreview = document.getElementById('edit_imagen_preview');
-                    if(producto.imagen) {
-                        imagenPreview.src = "{{ asset('') }}" + producto.imagen;
-                        imagenPreview.style.display = 'block';
-                    } else {
-                        imagenPreview.style.display = 'none';
-                    }
-                    
-                    // Mostrar el modal
-                    const editarModal = new bootstrap.Modal(document.getElementById('editarProductoModal'));
-                    editarModal.show();
+                    // Opcional: manejar errores de carga de imagen
+                    imagenPreview.onerror = function() {
+                        this.src = 'https://placehold.co/100x100?text=Imagen+no+disponible';
+                    };
                 } else {
-                    alert('Error al cargar los datos del producto');
+                    imagenPreview.style.display = 'none';
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ocurrió un error al cargar el producto');
-            });
-    }
+                
+                // Mostrar el modal
+                const editarModal = new bootstrap.Modal(document.getElementById('editarProductoModal'));
+                editarModal.show();
+            } else {
+                alert('Error al cargar los datos del producto');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al cargar el producto');
+        });
+}
 
     // Manejar la actualización del producto
     document.getElementById('btnActualizarProducto').addEventListener('click', function() {
@@ -98,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json',
                 'X-HTTP-Method-Override': 'PUT'
             }
@@ -138,13 +184,16 @@ document.querySelectorAll('.btn-eliminar').forEach(btn => {
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`/productos/${productoId}`, {
-                    method: 'PUT',
+                fetch(`/productos-eliminar/${productoId}`, {
+                    method: 'PUT', // Usar POST pero con _method=DELETE
                     headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        _method: 'PUT'
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -176,26 +225,105 @@ document.querySelectorAll('.btn-eliminar').forEach(btn => {
 });
 
 
+// Variables de paginación
+let paginaActual = 1;
+let itemsPorPagina = 7;
+let productosFiltrados = [];
+
+// Función para aplicar paginación
+function aplicarPaginacion() {
+    const inicio = (paginaActual - 1) * itemsPorPagina;
+    const fin = inicio + itemsPorPagina;
+    const filas = document.querySelectorAll('tbody tr[data-visible="true"]');
+    
+    // Ocultar todas las filas primero
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.style.display = 'none';
+    });
+    
+    // Mostrar solo las filas de la página actual
+    for (let i = inicio; i < fin && i < filas.length; i++) {
+        filas[i].style.display = '';
+    }
+    
+    // Actualizar información de paginación
+    document.getElementById('desde').textContent = inicio + 1;
+    document.getElementById('hasta').textContent = Math.min(fin, filas.length);
+    document.getElementById('total').textContent = filas.length;
+    
+    // Generar controles de paginación
+    generarControlesPaginacion(filas.length);
+}
+
+// Función para generar los controles de paginación
+function generarControlesPaginacion(totalItems) {
+    const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
+    const paginacion = document.getElementById('paginacion');
+    paginacion.innerHTML = '';
+    
+    // Botón Anterior
+    const liAnterior = document.createElement('li');
+    liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
+    liAnterior.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+    liAnterior.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (paginaActual > 1) {
+            paginaActual--;
+            aplicarPaginacion();
+        }
+    });
+    paginacion.appendChild(liAnterior);
+    
+    // Números de página
+    const inicioPagina = Math.max(1, paginaActual - 2);
+    const finPagina = Math.min(totalPaginas, paginaActual + 2);
+    
+    for (let i = inicioPagina; i <= finPagina; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener('click', (e) => {
+            e.preventDefault();
+            paginaActual = i;
+            aplicarPaginacion();
+        });
+        paginacion.appendChild(li);
+    }
+    
+    // Botón Siguiente
+    const liSiguiente = document.createElement('li');
+    liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
+    liSiguiente.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+    liSiguiente.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (paginaActual < totalPaginas) {
+            paginaActual++;
+            aplicarPaginacion();
+        }
+    });
+    paginacion.appendChild(liSiguiente);
+}
+
+// Modificar la función aplicarFiltros para incluir paginación
 function aplicarFiltros() {
     const searchTerm = document.getElementById('buscarProducto').value.toLowerCase().trim();
     const categoriaId = document.getElementById('filtroCategoria').value;
     const rangoPrecio = document.getElementById('filtroPrecio').value;
     
     document.querySelectorAll('tbody tr').forEach(row => {
-        // Datos del producto - con trim() para eliminar espacios extras
-        const nombre = row.querySelector('.product-name').textContent.toLowerCase().trim();
-        const descripcion = row.querySelector('.product-desc').textContent.toLowerCase().trim();
-        const caducidad = row.querySelector('.prod_cad').textContent.toLowerCase().trim();
-        const categoria = row.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+        // Datos del producto
+        const nombre = row.querySelector('.product-name').textContent.toLowerCase();
+        const descripcion = row.querySelector('.product-desc').textContent.toLowerCase();
+        const caducidad = row.querySelector('.prod_cad').textContent.toLowerCase();
+        const categoria = row.querySelector('td:nth-child(2)').textContent.trim();
         const precio = parseFloat(row.querySelector('td:nth-child(5)').textContent.replace(/[^\d.]/g, ''));
         
-        // Filtro de búsqueda mejorado
+        // Filtro de búsqueda
         const coincideBusqueda = !searchTerm || 
                                nombre.includes(searchTerm) || 
                                descripcion.includes(searchTerm) ||
-                               categoria.includes(searchTerm) ||
                                caducidad.includes(searchTerm) ||
-                               // Búsqueda por palabras individuales
+                               categoria.toLowerCase().includes(searchTerm) ||
                                searchTerm.split(' ').some(term => 
                                    term && (nombre.includes(term) || 
                                            descripcion.includes(term) ||
@@ -205,7 +333,7 @@ function aplicarFiltros() {
         
         // Filtro por categoría
         const coincideCategoria = !categoriaId || 
-                                (document.querySelector(`#filtroCategoria option[value="${categoriaId}"]`)?.textContent.trim().toLowerCase() === categoria.toLowerCase());
+                                (document.querySelector(`#filtroCategoria option[value="${categoriaId}"]`)?.textContent.trim() === categoria);
         
         // Filtro por precio
         let coincidePrecio = true;
@@ -214,10 +342,32 @@ function aplicarFiltros() {
             coincidePrecio = precio >= min && (max === 0 || precio <= max);
         }
         
-        // Mostrar u ocultar según los filtros
-        row.style.display = (coincideBusqueda && coincideCategoria && coincidePrecio) ? '' : 'none';
+        // Marcar filas visibles
+        const visible = coincideBusqueda && coincideCategoria && coincidePrecio;
+        row.style.display = 'none'; // Ocultar todas inicialmente
+        row.setAttribute('data-visible', visible);
     });
+    
+    // Resetear a primera página al aplicar nuevos filtros
+    paginaActual = 1;
+    aplicarPaginacion();
 }
+
+// Evento para cambiar items por página
+document.getElementById('itemsPorPagina').addEventListener('change', function() {
+    itemsPorPagina = parseInt(this.value);
+    paginaActual = 1;
+    aplicarPaginacion();
+});
+
+// Inicializar paginación al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Marcar todas las filas como visibles inicialmente
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.setAttribute('data-visible', 'true');
+    });
+    aplicarPaginacion();
+});
 
 // Asignar eventos a todos los filtros
 document.getElementById('buscarProducto').addEventListener('input', aplicarFiltros);

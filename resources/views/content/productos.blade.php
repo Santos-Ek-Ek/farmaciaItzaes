@@ -61,11 +61,13 @@
    <div class="p-4">
     <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4">
 <input type="text" id="buscarProducto" class="form-control form-control-sm w-100 w-sm-auto" placeholder="Buscar Producto..." aria-label="Buscar Producto"/>
-     <select class="form-select form-select-sm w-auto" aria-label="Rows per page">
-      <option selected>7</option>
-      <option>10</option>
-      <option>15</option>
-     </select>
+<select class="form-select form-select-sm w-auto" id="itemsPorPagina" aria-label="Rows per page">
+    <option value="7" selected>7</option>
+    <option value="10">10</option>
+    <option value="15">15</option>
+    <option value="25">25</option>
+    <option value="50">50</option>
+</select>
      <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
       <i class="fas fa-upload"></i>
       Exportar
@@ -135,6 +137,16 @@
         @endforeach
     </tbody>
 </table>
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted small" id="infoPaginacion">
+        Mostrando <span id="desde">0</span> a <span id="hasta">0</span> de <span id="total">0</span> productos
+    </div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm mb-0" id="paginacion">
+            <!-- Los botones de paginación se generarán aquí -->
+        </ul>
+    </nav>
+</div>
     </div>
    </div>
 
@@ -147,7 +159,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formAgregarProducto">
+                <form id="formAgregarProducto" action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="nombre" class="form-label">Nombre</label>
@@ -278,6 +291,6 @@
   </div>
 
 
-<script src="{{ asset('js/productos.js') }}"></script>
+<script src="js/productos.js"></script>
 
 @endsection

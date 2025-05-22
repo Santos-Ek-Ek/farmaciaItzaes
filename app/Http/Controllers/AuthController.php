@@ -60,7 +60,7 @@ public function register(Request $request)
             $request->session()->regenerate();
 
             // Redireccionar al dashboard o página principal después del login
-            return redirect()->intended('/');
+            return redirect()->intended('inicio');
         }
 
         // Si la autenticación falla, retornar con errores

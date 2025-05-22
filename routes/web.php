@@ -17,6 +17,13 @@ use App\Http\Controllers\AuthController;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('inicio', function () {
+    return view('content.inicio');
+});
+Route::get('productos', function () {
+    return view('content.productos');
+});
+
 
 
 Route::get('registro',[AuthController::class, 'verRegistro'])->name('registro');

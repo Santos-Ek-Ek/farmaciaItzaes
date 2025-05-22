@@ -1,0 +1,81 @@
+   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+   body {
+     font-family: 'Inter', sans-serif;
+     background-color: #f5f8fd;
+   }
+   .card {
+     border-radius: 0.5rem;
+     box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+   }
+   .circle-chart {
+     position: relative;
+     width: 160px;
+     height: 160px;
+     margin: 0 auto;
+   }
+   .circle-chart svg {
+     transform: rotate(-90deg);
+   }
+   .circle-chart circle {
+     fill: none;
+     stroke-linecap: round;
+     stroke-width: 6;
+   }
+   .circle-bg {
+     stroke: #e6e6e6;
+   }
+   .circle-outer {
+     stroke: #5A9BFF;
+     stroke-dasharray: 439.82;
+     stroke-dashoffset: 88;
+   }
+   .circle-middle {
+     stroke: #FF6B6B;
+     stroke-dasharray: 376.99;
+     stroke-dashoffset: 75;
+   }
+   .circle-inner {
+     stroke: #F4A261;
+     stroke-dasharray: 314.16;
+     stroke-dashoffset: 63;
+   }
+   .circle-text {
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     transform: translate(-50%, -50%);
+     text-align: center;
+     color: #475569;
+   }
+   .circle-text .percent {
+     font-weight: 800;
+     font-size: 2rem;
+     line-height: 1;
+   }
+   .circle-text .label {
+     font-size: 0.75rem;
+     color: #94a3b8;
+   }
+   .legend-color {
+     width: 12px;
+     height: 12px;
+     border-radius: 50%;
+     display: inline-block;
+     margin-right: 0.5rem;
+   }
+   .legend-target {
+     background-color: #5A9BFF;
+   }
+   .legend-mart {
+     background-color: #FF6B6B;
+   }
+   .legend-ebay {
+     background-color: #F4A261;
+   }
+   .btn-blue {
+     background-color: #5A9BFF;
+     border: none;
+   }
+   .btn-blue:hover {
+     background-color: #3a7de0;
+   }

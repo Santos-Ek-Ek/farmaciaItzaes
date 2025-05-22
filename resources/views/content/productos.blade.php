@@ -58,6 +58,9 @@
         </th>
         <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
          Precio <i class="fas fa-sort-up"></i>
+        </th>        
+        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
+         Acciones <i class="fas fa-sort-up"></i>
         </th>
        </tr>
       </thead>
@@ -89,6 +92,16 @@
         </td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">31063</td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">942</td>
+        <td>
+         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+           <i class="fas fa-trash"></i>
+          </button>
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+          <i class="fas fa-edit"></i>
+          </button>
+         </div>
+        </td>
        </tr>
        <!-- Row 2 -->
        <tr>
@@ -117,6 +130,16 @@
         </td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">5829</td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">587</td>
+        <td>
+         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+           <i class="fas fa-trash"></i>
+          </button>
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+          <i class="fas fa-edit"></i>
+          </button>
+         </div>
+        </td>
        </tr>
        <!-- Row 3 -->
        <tr>
@@ -145,6 +168,16 @@
         </td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">35946</td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">468</td>
+        <td>
+         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+           <i class="fas fa-trash"></i>
+          </button>
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+          <i class="fas fa-edit"></i>
+          </button>
+         </div>
+        </td>
        </tr>
        <!-- Row 4 -->
        <tr>
@@ -173,6 +206,16 @@
         </td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">46658</td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">851</td>
+        <td>
+         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+           <i class="fas fa-trash"></i>
+          </button>
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+          <i class="fas fa-edit"></i>
+          </button>
+         </div>
+        </td>
        </tr>
        <!-- Row 5 -->
        <tr>
@@ -201,6 +244,16 @@
         </td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">41867</td>
         <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">519</td>
+        <td>
+         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+           <i class="fas fa-trash"></i>
+          </button>
+          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+          <i class="fas fa-edit"></i>
+          </button>
+         </div>
+        </td>
        </tr>
       </tbody>
      </table>

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoriaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,8 +24,10 @@ Route::get('inicio', function () {
 Route::get('productos', function () {
     return view('content.productos');
 });
+Route::get('categorias', [CategoriaController::class, 'index'])->name('categorias.index');
 
 
+Route::post('categorias', [CategoriaController::class, 'store'])->name('categorias.store');
 
 Route::get('registro',[AuthController::class, 'verRegistro'])->name('registro');
 Route::get('login',[AuthController::class, 'verInicioSesion'])->name('login');

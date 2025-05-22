@@ -7,10 +7,23 @@ use App\Models\Categorias;
 
 class CategoriaController extends Controller
 {
-    public function index(){
-        $categorias = Categorias::where('activo', 1)->get();
-        return view('content.categorias', compact('categorias'));
+public function index(Request $request)
+{
+    $perPage = $request->input('per_page', 7);
+    
+    // Si se selecciona "TODOS" (valor 0), obtenemos todos los registros sin paginación
+    $query = Categorias::where('activo', 1);
+    
+    if ($perPage == 0) {
+        $categorias = $query->get();
+    } else {
+        $categorias = $query->paginate($perPage);
+        // Mantener el parámetro per_page en los links de paginación
+        $categorias->appends(['per_page' => $perPage]);
     }
+    
+    return view('content.categorias', compact('categorias'));
+}
 
     public function store(Request $request)
     {

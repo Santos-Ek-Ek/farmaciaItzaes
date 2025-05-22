@@ -9,11 +9,12 @@
         <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4">
             <input type="text" class="form-control form-control-sm w-100 w-sm-auto" placeholder="Buscar Categoría"
                 aria-label="Buscar Categoría" />
-            <select class="form-select form-select-sm w-auto" aria-label="Rows per page">
-                <option selected>7</option>
-                <option>10</option>
-                <option>15</option>
-            </select>
+<select class="form-select form-select-sm w-auto" id="rowsPerPage" aria-label="Rows per page">
+    <option value="7" {{ (request('per_page', 7) == 7) ? 'selected' : '' }}>7</option>
+    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+    <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+    <option value="0" {{ request('per_page') == 0 ? 'selected' : '' }}>TODOS</option>
+</select>
             <button type="button" class="btn btn-add btn-sm ms-auto ms-sm-0" data-bs-toggle="modal"
                 data-bs-target="#categoriaModal">+ Agregar Categoría</button>
         </div>
@@ -61,6 +62,53 @@
                 </tbody>
             </table>
         </div>
+                <!-- Paginación -->
+@if(isset($categorias) && method_exists($categorias, 'links'))
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+    <div class="text-muted small mb-2 mb-md-0">
+        Mostrando {{ $categorias->firstItem() }} a {{ $categorias->lastItem() }} de {{ $categorias->total() }} resultados
+    </div>
+    
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm mb-0">
+            {{-- flechas de paginacion --}}
+            @if ($categorias->onFirstPage())
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo; Anterior</span>
+                </li>
+            @else
+                <li class="page-item">
+                    <a class="page-link" href="{{ $categorias->previousPageUrl() }}" rel="prev">&laquo; Anterior</a>
+                </li>
+            @endif
+
+            {{-- numeracion --}}
+            @foreach ($categorias->getUrlRange(1, $categorias->lastPage()) as $page => $url)
+                @if ($page == $categorias->currentPage())
+                    <li class="page-item active">
+                        <span class="page-link">{{ $page }}</span>
+                    </li>
+                @else
+                    <li class="page-item">
+                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                    </li>
+                @endif
+            @endforeach
+
+            {{-- siguiente flecha --}}
+            @if ($categorias->hasMorePages())
+                <li class="page-item">
+                    <a class="page-link" href="{{ $categorias->nextPageUrl() }}" rel="next">Siguiente &raquo;</a>
+                </li>
+            @else
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente &raquo;</span>
+                </li>
+            @endif
+        </ul>
+    </nav>
+</div>
+@endif
     </div>
 </div>
 
@@ -180,6 +228,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => console.error('Error:', error));
         });
+    });
+
+
+    // Manejar cambio en el select de registros por página
+    document.getElementById('rowsPerPage').addEventListener('change', function() {
+        const perPage = this.value;
+        const url = new URL(window.location.href);
+        
+        // Resetear a página 1 al cambiar el número de resultados
+        url.searchParams.set('page', 1);
+        url.searchParams.set('per_page', perPage);
+        
+        window.location.href = url.toString();
     });
 });
 </script>

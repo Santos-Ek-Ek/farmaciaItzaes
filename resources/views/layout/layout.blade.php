@@ -104,10 +104,11 @@
    .main-header {
      padding-left: 3.5rem; /* Espacio para el botón de hamburguesa */
    }
-   @media (max-width: 992px) {
+      @media (max-width: 992px) {
      .sidebar {
        transform: translateX(-100%);
        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+       z-index: 1040;
      }
      .sidebar.show {
        transform: translateX(0);
@@ -117,23 +118,36 @@
      }
      .toggle-sidebar {
        display: block;
+       z-index: 1060; 
+     }
+     .sidebar-header {
+       padding-left: 3rem; /* Espacio para el botón cuando el menú está abierto */
      }
      .main-header {
        padding-left: 0;
-       margin-left: 3.5rem; /* Asegura espacio para el título */
+       margin-left: 3.5rem;
      }
      .sidebar-collapsed .sidebar {
        transform: translateX(-100%);
      }
    }
+   
    @media (max-width: 576px) {
      .toggle-sidebar {
        top: 0.5rem;
        left: 0.5rem;
      }
+     .sidebar-header {
+       padding-left: 2.5rem;
+     }
      .main-header {
        margin-left: 2.5rem;
      }
+   }
+   
+   .sidebar-header {
+     position: relative;
+     transition: padding-left 0.3s ease;
    }
   </style>
 </head>
@@ -145,9 +159,8 @@
   <div class="wrapper" id="wrapper">
    <aside class="sidebar" id="sidebar">
     <div class="sidebar-content">
-     <div class="d-flex justify-content-between align-items-center mb-4">
+     <div class="d-flex justify-content-between align-items-center mb-4 sidebar-header">
       <div class="d-flex align-items-center gap-2">
-       <img alt="Logo" src="https://storage.googleapis.com/a1aa/image/3c9a5efa-96a1-4a50-095c-41eeb3259ed5.jpg" width="24" height="24"/>
        <span class="sidebar-brand-text text-primary fw-bold fs-5 m-0">Farmacias Itzaes</span>
       </div>
      </div>
@@ -214,39 +227,47 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleSidebar = document.getElementById('toggleSidebar');
-    const sidebar = document.getElementById('sidebar');
-    const wrapper = document.getElementById('wrapper');
-    
-    // Modificación 1: Cambiar el event listener para manejar clics en el ícono
-    toggleSidebar.addEventListener('click', function(e) {
-        // Prevenir comportamiento por defecto
-        e.preventDefault();
-        e.stopPropagation();
-        sidebar.classList.toggle('show');
-    });
-    
-    // Modificación 2: Mejorar el cierre al hacer clic fuera
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth < 992) {
-            const isClickInsideSidebar = sidebar.contains(e.target);
-            const isClickOnToggle = toggleSidebar.contains(e.target);
-            
-            if (!isClickInsideSidebar && !isClickOnToggle) {
-                sidebar.classList.remove('show');
-            }
-        }
-    });
-    
-    // Ajustar al cambiar tamaño de pantalla
-    window.addEventListener('resize', function() {
-        if (window.innerWidth >= 992) {
-            sidebar.classList.remove('show');
-        }
-    });
-});
-</script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const toggleSidebar = document.getElementById('toggleSidebar');
+      const sidebar = document.getElementById('sidebar');
+      
+      toggleSidebar.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          sidebar.classList.toggle('show');
+          
+          // Cambiar ícono al abrir/cerrar
+          const icon = this.querySelector('i');
+          if (sidebar.classList.contains('show')) {
+              icon.classList.replace('fa-bars', 'fa-times');
+          } else {
+              icon.classList.replace('fa-times', 'fa-bars');
+          }
+      });
+      
+      document.addEventListener('click', function(e) {
+          if (window.innerWidth < 992) {
+              const isClickInsideSidebar = sidebar.contains(e.target);
+              const isClickOnToggle = toggleSidebar.contains(e.target);
+              
+              if (!isClickInsideSidebar && !isClickOnToggle) {
+                  sidebar.classList.remove('show');
+                  toggleSidebar.querySelector('i').classList.replace('fa-times', 'fa-bars');
+              }
+          }
+      });
+      
+      window.addEventListener('resize', function() {
+          if (window.innerWidth >= 992) {
+              sidebar.classList.remove('show');
+              const icon = toggleSidebar.querySelector('i');
+              if (icon.classList.contains('fa-times')) {
+                  icon.classList.replace('fa-times', 'fa-bars');
+              }
+          }
+      });
+  });
+  </script>
 </body>
 </html>

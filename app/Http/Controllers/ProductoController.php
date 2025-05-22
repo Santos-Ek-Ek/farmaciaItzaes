@@ -134,4 +134,25 @@ public function update(Request $request, $id)
         ], 500);
     }
 }
+
+public function destroy($id)
+{
+    try {
+        $producto = Productos::findOrFail($id);
+        
+        // Marcar como inactivo en lugar de eliminar
+        $producto->update(['activo' => 0]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto desactivado exitosamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al desactivar el producto: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

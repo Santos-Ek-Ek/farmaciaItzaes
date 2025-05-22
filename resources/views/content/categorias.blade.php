@@ -47,11 +47,10 @@
                                     data-id="{{ $categoria->id }}" data-bs-toggle="modal" data-bs-target="#editCategoriaModal">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form action="{{ route('categorias.destroy', $categoria->id) }}" method="POST">
+                                <form style="margin-top: 13px;" action="{{ route('categorias.destroy', $categoria->id) }}" method="POST" class="delete-form">
                                     @csrf
                                     @method('PUT')
-                                    <button style="margin-top: 12px;" type="submit" class="btn btn-export btn-sm d-flex align-items-center gap-1"
-                                        onclick="return confirm('¿Estás seguro de querer desactivar esta categoría?')">
+                                    <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1 delete-btn">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -242,6 +241,35 @@ document.addEventListener('DOMContentLoaded', function() {
         
         window.location.href = url.toString();
     });
+
+
+    // Confirmación de eliminación con SweetAlert2
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = this.closest('form');
+        
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'border-radius-08',
+                confirmButton: 'btn-confirm',
+                cancelButton: 'btn-cancel'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
 });
 </script>
 

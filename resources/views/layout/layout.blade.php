@@ -88,12 +88,15 @@
      position: fixed;
      top: 1rem;
      left: 1rem;
-     z-index: 1050;
+     z-index: 1040;
      background: #f3f4f6;
      border: 1px solid #d1d5db;
      border-radius: 0.25rem;
      padding: 0.5rem;
    }
+   .modal-open .toggle-sidebar {
+    display: none;
+}
    .user-avatar {
      width: 38px;
      height: 38px;

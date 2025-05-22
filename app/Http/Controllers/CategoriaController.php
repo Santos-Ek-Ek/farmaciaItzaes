@@ -29,4 +29,38 @@ class CategoriaController extends Controller
         return redirect()->back()
                          ->with('success', 'Categoría creada exitosamente');
     }
+
+public function edit($id)
+{
+    $categoria = Categorias::findOrFail($id);
+    return response()->json($categoria);
+}
+
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'descripcion' => 'nullable|string'
+    ]);
+
+    $categoria = Categorias::findOrFail($id);
+    $categoria->update([
+        'nombre' => $request->nombre,
+        'descripcion' => $request->descripcion
+    ]);
+
+    return redirect()->route('categorias.index')
+                     ->with('success', 'Categoría actualizada correctamente');
+}
+
+
+public function destroy($id)
+{
+    $categoria = Categorias::findOrFail($id);
+    $categoria->activo = 0;
+    $categoria->save();
+    
+    return redirect()->route('categorias.index')
+                     ->with('success', 'Categoría desactivada correctamente');
+}
 }

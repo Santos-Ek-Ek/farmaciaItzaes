@@ -27,7 +27,10 @@ Route::get('productos', function () {
 Route::get('categorias', [CategoriaController::class, 'index'])->name('categorias.index');
 
 
-Route::post('categorias', [CategoriaController::class, 'store'])->name('categorias.store');
+Route::post('categorias-agregar', [CategoriaController::class, 'store'])->name('categorias.store');
+Route::put('categorias-eliminar/{id}', [CategoriaController::class, 'destroy'])->name('categorias.destroy');
+Route::get('categorias/{id}/edit', [CategoriaController::class, 'edit'])->name('categorias.edit');
+Route::put('categorias/{id}', [CategoriaController::class, 'update'])->name('categorias.update');
 
 Route::get('registro',[AuthController::class, 'verRegistro'])->name('registro');
 Route::get('login',[AuthController::class, 'verInicioSesion'])->name('login');

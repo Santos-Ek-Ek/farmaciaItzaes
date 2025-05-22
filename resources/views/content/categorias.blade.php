@@ -42,12 +42,18 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1 edit-btn"
+                                    data-id="{{ $categoria->id }}" data-bs-toggle="modal" data-bs-target="#editCategoriaModal">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <form action="{{ route('categorias.destroy', $categoria->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <button style="margin-top: 12px;" type="submit" class="btn btn-export btn-sm d-flex align-items-center gap-1"
+                                        onclick="return confirm('¿Estás seguro de querer desactivar esta categoría?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -87,43 +93,94 @@
     </div>
 </div>
 
+<!-- Modal para editar categoría -->
+<div class="modal fade" id="editCategoriaModal" tabindex="-1" aria-labelledby="editCategoriaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoriaModalLabel">Editar Categoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editCategoriaForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="edit_descripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('input[placeholder="Buscar Categoría"]');
     const rows = document.querySelectorAll('tbody tr');
-    
+
     // Función mejorada para filtrar categorías
     const filterCategories = () => {
         // Eliminar espacios al inicio/final y normalizar espacios múltiples
         const searchTerm = searchInput.value.toLowerCase().trim().replace(/\s+/g, ' ');
-        
+
         rows.forEach(row => {
             const nombre = (row.querySelector('.product-name')?.textContent || '').toLowerCase();
-            const descripcion = (row.querySelector('.product-desc')?.textContent || '').toLowerCase();
-            
+            const descripcion = (row.querySelector('.product-desc')?.textContent || '')
+            .toLowerCase();
+
             // Dividir el término de búsqueda en palabras individuales
             const searchWords = searchTerm.split(' ');
-            
+
             // Verificar si TODAS las palabras aparecen en nombre O descripción
-            const matchesSearch = searchWords.every(word => 
+            const matchesSearch = searchWords.every(word =>
                 nombre.includes(word) || descripcion.includes(word));
-            
+
             row.style.display = matchesSearch ? '' : 'none';
         });
     };
-    
+
     // Búsqueda en tiempo real
     let debounceTimer;
     searchInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(filterCategories, 300);
     });
-    
+
     // Filtrar al cargar si hay valor
     if (searchInput.value.trim()) {
         filterCategories();
     }
+
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const categoriaId = this.getAttribute('data-id');
+            
+            // Hacer una petición AJAX para obtener los datos de la categoría
+            fetch(`/categorias/${categoriaId}/edit`)
+                .then(response => response.json())
+                .then(data => {
+                    // Llenar el formulario con los datos de la categoría
+                    document.getElementById('edit_nombre').value = data.nombre;
+                    document.getElementById('edit_descripcion').value = data.descripcion;
+                    
+                    // Actualizar la acción del formulario
+                    document.getElementById('editCategoriaForm').action = `/categorias/${categoriaId}`;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
 });
 </script>
 

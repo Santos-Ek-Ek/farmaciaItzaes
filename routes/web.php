@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\ProductoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,11 +22,12 @@ Route::get('/', function () {
 Route::get('inicio', function () {
     return view('content.inicio');
 });
-Route::get('productos', function () {
-    return view('content.productos');
-});
-Route::get('categorias', [CategoriaController::class, 'index'])->name('categorias.index');
 
+Route::get('categorias', [CategoriaController::class, 'index'])->name('categorias.index');
+Route::get('productos', [ProductoController::class, 'index'])->name('productos.index');
+Route::post('productos-agregar', [ProductoController::class, 'store'])->name('productos.store');
+Route::get('/productos/{id}/edit', [ProductoController::class, 'edit'])->name('productos.edit');
+Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
 
 Route::post('categorias-agregar', [CategoriaController::class, 'store'])->name('categorias.store');
 Route::put('categorias-eliminar/{id}', [CategoriaController::class, 'destroy'])->name('categorias.destroy');

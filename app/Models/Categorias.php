@@ -16,5 +16,8 @@ class Categorias extends Model
         'activo'
     ];
 
-    
+        public function productos()
+    {
+        return $this->hasMany(Productos::class);
+    }
 }

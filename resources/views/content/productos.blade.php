@@ -11,17 +11,50 @@
      <div class="col-12 col-sm-4 col-md-3 col-lg-2">
       <select class="form-select" aria-label="Category">
        <option selected>Categoría</option>
-       <option>Shoes</option>
-       <option>Electronics</option>
-       <option>Accessories</option>
+       @foreach ($categorias as $categoria)
+       <option>{{$categoria->nombre}}</option>
+      @endforeach
       </select>
      </div>
      <div class="col-12 col-sm-4 col-md-3 col-lg-2">
-      <select class="form-select" aria-label="Stock">
-       <option selected>Precio</option>
-       <option>In Stock</option>
-       <option>Out of Stock</option>
-      </select>
+ <select class="form-select" aria-label="Rango de precios" id="filtroPrecio" name="filtroPrecio">
+        <option selected value="">Todos los precios</option>
+        @php
+            // Obtener el precio máximo de la base de datos
+            $maxPrice = (float)App\Models\Productos::max('precio');
+            
+            // Si no hay productos o el precio es 0, establecer un valor por defecto
+            if($maxPrice <= 0) {
+                $maxPrice = 200; // Valor por defecto para mostrar al menos dos rangos
+            }
+            
+            // Definir el incremento base
+            $increment = 100;
+            $current = 0;
+            
+            // Calcular los rangos 
+            while($current < $maxPrice) {
+                $next = $current + $increment;
+                // Mostrar el rango aunque el máximo no lo alcance completamente
+                $displayNext = ($next > $maxPrice) ? $next : $next;
+                @endphp
+                <option value="{{ $current }}-{{ $next }}">
+                    ${{ number_format($current, 2) }} - ${{ number_format($displayNext, 2) }}
+                </option>
+                @php
+                $current = $next;
+            }
+            
+            // Opción para "más de" el último rango 
+            if($maxPrice > $current - $increment) {
+                @endphp
+                <option value="{{ $current - $increment }}-{{ $current * 2 }}">
+                    Más de ${{ number_format($current, 2) }}
+                </option>
+                @php
+            }
+        @endphp
+    </select>
      </div>
     </form>
    </div>
@@ -38,227 +71,337 @@
       Exportar
       <i class="fas fa-chevron-down" style="font-size: 8px;"></i>
      </button>
-     <button type="button" class="btn btn-add btn-sm ms-auto ms-sm-0">+ Agregar Producto</button>
+     <button type="button" class="btn btn-add btn-sm ms-auto ms-sm-0" data-bs-toggle="modal" data-bs-target="#agregarProductoModal">+ Agregar Producto</button>
     </div>
     <div class="table-responsive">
      <table class="table table-borderless align-middle text-secondary-subtle">
-      <thead class="bg-light border border-secondary-subtle rounded-2">
-       <tr>
-        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
-         Producto <i class="fas fa-sort-up"></i>
-        </th>
-        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
-         Categoría <i class="fas fa-sort-up"></i>
-        </th>
-        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
-         Disponibles <i class="fas fa-sort-up"></i>
-        </th>
-        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
-         Código <i class="fas fa-sort-up"></i>
-        </th>
-        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
-         Precio <i class="fas fa-sort-up"></i>
-        </th>        
-        <th class="text-uppercase fw-semibold" style="font-size: 0.625rem; cursor:pointer;">
-         Acciones <i class="fas fa-sort-up"></i>
-        </th>
-       </tr>
-      </thead>
-      <tbody class="border border-secondary-subtle rounded-2 bg-white">
-       <!-- Row 1 -->
-       <tr>
-        <td>
-         <div class="d-flex align-items-center gap-3">
-          <img src="https://placehold.co/32x32/png?text=AJ" alt="Red and black Air Jordan basketball shoe side view" class="rounded" width="32" height="32"/>
-          <div>
-           <div class="product-name">Air Jordan</div>
-           <div class="product-desc">Air Jordan is a line of basketball shoes produced by Nike</div>
-          </div>
-         </div>
-        </td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <div class="icon-circle icon-shoes">
-           <i class="fas fa-walking"></i>
-          </div>
-          Shoes
-         </div>
-        </td>
-        <td class="text-center">
-         <label class="switch" aria-label="Stock toggle Air Jordan">
-          <input type="checkbox" disabled/>
-          <span class="slider"></span>
-         </label>
-        </td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">31063</td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">942</td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-           <i class="fas fa-trash"></i>
-          </button>
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-          <i class="fas fa-edit"></i>
-          </button>
-         </div>
-        </td>
-       </tr>
-       <!-- Row 2 -->
-       <tr>
-        <td>
-         <div class="d-flex align-items-center gap-3">
-          <img src="https://placehold.co/32x32/png?text=AF" alt="Amazon Fire TV device with blue screen" class="rounded" width="32" height="32"/>
-          <div>
-           <div class="product-name">Amazon Fire TV</div>
-           <div class="product-desc">4K UHD smart TV, stream live TV without cable</div>
-          </div>
-         </div>
-        </td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <div class="icon-circle icon-electronics">
-           <i class="fas fa-mobile-alt"></i>
-          </div>
-          Electronics
-         </div>
-        </td>
-        <td class="text-center">
-         <label class="switch" aria-label="Stock toggle Amazon Fire TV">
-          <input type="checkbox" disabled/>
-          <span class="slider"></span>
-         </label>
-        </td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">5829</td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">587</td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-           <i class="fas fa-trash"></i>
-          </button>
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-          <i class="fas fa-edit"></i>
-          </button>
-         </div>
-        </td>
-       </tr>
-       <!-- Row 3 -->
-       <tr>
-        <td>
-         <div class="d-flex align-items-center gap-3">
-          <img src="https://placehold.co/32x32/png?text=IP" alt="Apple iPad front view with colorful screen" class="rounded" width="32" height="32"/>
-          <div>
-           <div class="product-name">Apple iPad</div>
-           <div class="product-desc">10.2-inch Retina Display, 64GB</div>
-          </div>
-         </div>
-        </td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <div class="icon-circle icon-electronics">
-           <i class="fas fa-mobile-alt"></i>
-          </div>
-          Electronics
-         </div>
-        </td>
-        <td class="text-center">
-         <label class="switch" aria-label="Stock toggle Apple iPad">
-          <input type="checkbox" checked/>
-          <span class="slider"></span>
-         </label>
-        </td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">35946</td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">468</td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-           <i class="fas fa-trash"></i>
-          </button>
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-          <i class="fas fa-edit"></i>
-          </button>
-         </div>
-        </td>
-       </tr>
-       <!-- Row 4 -->
-       <tr>
-        <td>
-         <div class="d-flex align-items-center gap-3">
-          <img src="https://placehold.co/32x32/png?text=AW" alt="Apple Watch Series 7 with Starlight Sport Band" class="rounded" width="32" height="32"/>
-          <div>
-           <div class="product-name">Apple Watch Series 7</div>
-           <div class="product-desc">Starlight Aluminum Case with Starlight Sport Band.</div>
-          </div>
-         </div>
-        </td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <div class="icon-circle icon-accessories">
-           <i class="fas fa-coins"></i>
-          </div>
-          Accessories
-         </div>
-        </td>
-        <td class="text-center">
-         <label class="switch" aria-label="Stock toggle Apple Watch Series 7">
-          <input type="checkbox" disabled/>
-          <span class="slider"></span>
-         </label>
-        </td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">46658</td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">851</td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-           <i class="fas fa-trash"></i>
-          </button>
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-          <i class="fas fa-edit"></i>
-          </button>
-         </div>
-        </td>
-       </tr>
-       <!-- Row 5 -->
-       <tr>
-        <td>
-         <div class="d-flex align-items-center gap-3">
-          <img src="https://placehold.co/32x32/png?text=BG" alt="BANGE Anti Theft Backpack in gray color" class="rounded" width="32" height="32"/>
-          <div>
-           <div class="product-name">BANGE Anti Theft Backpack</div>
-           <div class="product-desc">Smart Business Laptop Fits 15.6 Inch Notebook</div>
-          </div>
-         </div>
-        </td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <div class="icon-circle icon-accessories">
-           <i class="fas fa-coins"></i>
-          </div>
-          Accessories
-         </div>
-        </td>
-        <td class="text-center">
-         <label class="switch" aria-label="Stock toggle BANGE Anti Theft Backpack">
-          <input type="checkbox" checked/>
-          <span class="slider"></span>
-         </label>
-        </td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">41867</td>
-        <td class="text-center text-secondary fw-monospace" style="font-size: 0.75rem;">519</td>
-        <td>
-         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-           <i class="fas fa-trash"></i>
-          </button>
-          <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-          <i class="fas fa-edit"></i>
-          </button>
-         </div>
-        </td>
-       </tr>
-      </tbody>
-     </table>
+    <thead class="bg-light border border-secondary-subtle rounded-2">
+        <tr>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 25%;">
+                Producto <i class="fas fa-sort-up"></i>
+            </th>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 15%;">
+                Categoría <i class="fas fa-sort-up"></i>
+            </th>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 10%;">
+                Disponibles <i class="fas fa-sort-up"></i>
+            </th>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 15%;">
+                Fecha de Caducidad <i class="fas fa-sort-up"></i>
+            </th>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 10%;">
+                Precio <i class="fas fa-sort-up"></i>
+            </th>        
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 15%;">
+                Acciones <i class="fas fa-sort-up"></i>
+            </th>
+        </tr>
+    </thead>
+    <tbody class="border border-secondary-subtle rounded-2 bg-white">
+        @foreach ($productos as $producto)
+        <tr>
+            <td class="align-middle" style="width: 25%;">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{{ asset($producto->imagen) }}" alt="{{ $producto->nombre }}" class="rounded" width="48" height="48" onerror="this.src='https://placehold.co/48x48?text=Imagen'" />
+                    <div>
+                        <div class="product-name">{{ $producto->nombre }} - {{ $producto->unidad_medida }}</div>
+                        <div class="product-desc text-muted small">{{ Str::limit($producto->descripcion, 50) }}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="text-center align-middle" style="width: 15%;">
+                {{ $producto->categoria->nombre }}
+            </td>
+            <td class="text-center align-middle" style="width: 10%;">
+                {{ $producto->cantidad }}
+            </td>
+            <td class="text-center align-middle" style="width: 15%;">
+                {{ $producto->fecha_caducidad ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}
+            </td>
+            <td class="text-center align-middle" style="width: 10%;">
+                ${{ number_format($producto->precio , 2) }} <!-- Reemplaza con $producto->precio si existe -->
+            </td>
+            <td class="text-center align-middle" style="width: 15%;">
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+<button type="button" class="btn btn-sm btn-outline-primary btn-editar" data-id="{{ $producto->id }}">
+    <i class="fas fa-edit"></i>
+</button>
+                </div>
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
     </div>
    </div>
+
+<!-- Modal para agregar producto -->
+<div class="modal fade" id="agregarProductoModal" tabindex="-1" aria-labelledby="agregarProductoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agregarProductoModalLabel">Agregar Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAgregarProducto">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="imagen" class="form-label">Imagen</label>
+                            <input type="file" class="form-control" id="imagen" name="imagen">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="cantidad" class="form-label">Cantidad</label>
+                            <input type="number" class="form-control" id="cantidad" name="cantidad" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="precio" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="precio" name="precio" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dia_llegada" class="form-label">Día de llegada</label>
+                            <input type="date" class="form-control" id="dia_llegada" name="dia_llegada">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_caducidad" class="form-label">Fecha de caducidad</label>
+                            <input type="date" class="form-control" id="fecha_caducidad" name="fecha_caducidad">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="categoria_id" class="form-label">Categoría</label>
+                            <select class="form-select" id="categoria_id" name="categoria_id" required>
+                                <option value="">Seleccione una categoría</option>
+                                @foreach($categorias as $categoria)
+                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="unidad_medida" class="form-label">Unidad de medida</label>
+                            <input type="text" class="form-control" id="unidad_medida" name="unidad_medida">
+                        </div>
+                        <div class="col-12">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal para editar producto -->
+<div class="modal fade" id="editarProductoModal" tabindex="-1" aria-labelledby="editarProductoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarProductoModalLabel">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarProducto">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="edit_nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_imagen" class="form-label">Imagen</label>
+                            <input type="file" class="form-control" id="edit_imagen" name="imagen">
+                            <div class="mt-2">
+                                <img id="edit_imagen_preview" src="" alt="Vista previa" style="max-width: 100px; display: none;" class="img-thumbnail">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_cantidad" class="form-label">Cantidad</label>
+                            <input type="number" class="form-control" id="edit_cantidad" name="cantidad" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_precio" class="form-label">Precio</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="edit_precio" name="precio" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_dia_llegada" class="form-label">Día de llegada</label>
+                            <input type="date" class="form-control" id="edit_dia_llegada" name="dia_llegada">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_fecha_caducidad" class="form-label">Fecha de caducidad</label>
+                            <input type="date" class="form-control" id="edit_fecha_caducidad" name="fecha_caducidad">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_categoria_id" class="form-label">Categoría</label>
+                            <select class="form-select" id="edit_categoria_id" name="categoria_id" required>
+                                <option value="">Seleccione una categoría</option>
+                                @foreach($categorias as $categoria)
+                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_unidad_medida" class="form-label">Unidad de medida</label>
+                            <input type="text" class="form-control" id="edit_unidad_medida" name="unidad_medida">
+                        </div>
+                        <div class="col-12">
+                            <label for="edit_descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="edit_descripcion" name="descripcion" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnActualizarProducto">Actualizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
   </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuración del modal
+        const agregarProductoModal = new bootstrap.Modal(document.getElementById('agregarProductoModal'));
+        
+       document.getElementById('btnGuardarProducto').addEventListener('click', function() {
+    const form = document.getElementById('formAgregarProducto');
+    const formData = new FormData(form);
+    
+    fetch('{{ route("productos.store") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Mostrar mensaje de éxito
+            alert(data.message);
+            
+            // Cerrar el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('agregarProductoModal'));
+            modal.hide();
+            
+            // Recargar la página o actualizar la tabla
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ocurrió un error al guardar el producto');
+    });
+});
+    });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar los botones de edición
+    document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productoId = this.getAttribute('data-id');
+            cargarDatosProducto(productoId);
+        });
+    });
+
+    // Función para cargar los datos del producto
+    function cargarDatosProducto(id) {
+        fetch(`/productos/${id}/edit`)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    const producto = data.producto;
+                    
+                    // Llenar el formulario con los datos del producto
+                    document.getElementById('edit_id').value = producto.id;
+                    document.getElementById('edit_nombre').value = producto.nombre;
+                    document.getElementById('edit_cantidad').value = producto.cantidad;
+                    document.getElementById('edit_precio').value = producto.precio;
+                    document.getElementById('edit_dia_llegada').value = producto.dia_llegada;
+                    document.getElementById('edit_fecha_caducidad').value = producto.fecha_caducidad;
+                    document.getElementById('edit_categoria_id').value = producto.categoria_id;
+                    document.getElementById('edit_unidad_medida').value = producto.unidad_medida;
+                    document.getElementById('edit_descripcion').value = producto.descripcion;
+                    
+                    // Mostrar vista previa de la imagen si existe
+                    const imagenPreview = document.getElementById('edit_imagen_preview');
+                    if(producto.imagen) {
+                        imagenPreview.src = "{{ asset('') }}" + producto.imagen;
+                        imagenPreview.style.display = 'block';
+                    } else {
+                        imagenPreview.style.display = 'none';
+                    }
+                    
+                    // Mostrar el modal
+                    const editarModal = new bootstrap.Modal(document.getElementById('editarProductoModal'));
+                    editarModal.show();
+                } else {
+                    alert('Error al cargar los datos del producto');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al cargar el producto');
+            });
+    }
+
+    // Manejar la actualización del producto
+    document.getElementById('btnActualizarProducto').addEventListener('click', function() {
+        const form = document.getElementById('formEditarProducto');
+        const formData = new FormData(form);
+        const productoId = document.getElementById('edit_id').value;
+        
+        fetch(`/productos/${productoId}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'X-HTTP-Method-Override': 'PUT'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                alert(data.message);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editarProductoModal'));
+                modal.hide();
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al actualizar el producto');
+        });
+    });
+});
+
+</script>
 
 @endsection

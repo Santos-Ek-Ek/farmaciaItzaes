@@ -43,14 +43,14 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1 edit-btn"
+                                <button type="button" class="btn btn-sm d-flex align-items-center gap-1 edit-btn btn-outline-primary"
                                     data-id="{{ $categoria->id }}" data-bs-toggle="modal" data-bs-target="#editCategoriaModal">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form style="margin-top: 13px;" action="{{ route('categorias.destroy', $categoria->id) }}" method="POST" class="delete-form">
                                     @csrf
                                     @method('PUT')
-                                    <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1 delete-btn">
+                                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 delete-btn btn-outline-danger">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

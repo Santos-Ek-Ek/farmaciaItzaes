@@ -115,7 +115,7 @@
             <td class="text-center align-middle" style="width: 10%;">
                 {{ $producto->cantidad }}
             </td>
-            <td class="text-center align-middle" style="width: 15%;">
+            <td class="text-center align-middle prod_cad" style="width: 15%;">
                 {{ $producto->fecha_caducidad ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}
             </td>
             <td class="text-center align-middle" style="width: 10%;">

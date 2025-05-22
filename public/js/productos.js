@@ -185,6 +185,7 @@ function aplicarFiltros() {
         // Datos del producto - con trim() para eliminar espacios extras
         const nombre = row.querySelector('.product-name').textContent.toLowerCase().trim();
         const descripcion = row.querySelector('.product-desc').textContent.toLowerCase().trim();
+        const caducidad = row.querySelector('.prod_cad').textContent.toLowerCase().trim();
         const categoria = row.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
         const precio = parseFloat(row.querySelector('td:nth-child(5)').textContent.replace(/[^\d.]/g, ''));
         
@@ -193,10 +194,12 @@ function aplicarFiltros() {
                                nombre.includes(searchTerm) || 
                                descripcion.includes(searchTerm) ||
                                categoria.includes(searchTerm) ||
+                               caducidad.includes(searchTerm) ||
                                // Búsqueda por palabras individuales
                                searchTerm.split(' ').some(term => 
                                    term && (nombre.includes(term) || 
                                            descripcion.includes(term) ||
+                                           caducidad.includes(term) ||
                                            categoria.includes(term))
                                );
         

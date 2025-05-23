@@ -182,10 +182,6 @@
        <span class="nav-link-text">Categorías</span>
       </a>
       <a class="nav-link" href="#">
-       <i class="fas fa-book-medical"></i>
-       <span class="nav-link-text">Stock</span>
-      </a>
-      <a class="nav-link" href="#">
        <i class="fas fa-shopping-cart"></i>
        <span class="nav-link-text">Ventas</span>
       </a>

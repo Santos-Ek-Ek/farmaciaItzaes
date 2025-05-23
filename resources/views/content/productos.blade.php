@@ -92,7 +92,7 @@
                 Fecha de Caducidad 
             </th>
             <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 10%;">
-                Precio 
+                Precio Uni.
             </th>        
             <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
                 Acciones 
@@ -102,15 +102,15 @@
     <tbody class="border border-secondary-subtle rounded-2 bg-white">
         @foreach ($productos as $producto)
         <tr>
-            <td class="align-middle" style="width: 25%;">
-                <div class="d-flex align-items-center gap-3">
-                    <img src="{{ asset($producto->imagen) }}" alt="{{ $producto->nombre }}" class="rounded" width="48" height="48" onerror="this.src='https://placehold.co/48x48?text=Imagen'" />
-                    <div>
-                        <div class="product-name">{{ $producto->nombre }} - {{ $producto->unidad_medida }}</div>
-                        <div class="product-desc text-muted small">{{ Str::limit($producto->descripcion, 50) }}</div>
-                    </div>
-                </div>
-            </td>
+<td class="align-middle" style="width: 25%;">
+    <div class="d-flex align-items-center gap-3">
+        <img src="{{ asset($producto->imagen) }}" alt="{{ $producto->nombre }}" class="rounded" width="48" height="48" onerror="this.src='https://placehold.co/48x48?text=Imagen'" />
+        <div>
+            <div class="product-name">{!! $producto->nombreConEstado() !!} - {{ $producto->unidad_medida }}</div>
+            <div class="product-desc text-muted small">{{ Str::limit($producto->descripcion, 50) }}</div>
+        </div>
+    </div>
+</td>
             <td class="text-center align-middle" style="width: 15%;">
                 {{ $producto->categoria->nombre }}
             </td>

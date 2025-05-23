@@ -27,4 +27,24 @@ class Productos extends Model
     {
         return $this->belongsTo(Categorias::class);
     }
+
+    public function estaCaducado()
+{
+    if (empty($this->fecha_caducidad)) {
+        return false;
+    }
+    
+    return now()->greaterThan($this->fecha_caducidad);
+}
+
+public function nombreConEstado()
+{
+    $nombre = $this->nombre;
+    
+    if ($this->estaCaducado()) {
+        $nombre .= ' <span class="badge bg-danger">CADUCADO</span>';
+    }
+    
+    return $nombre;
+}
 }

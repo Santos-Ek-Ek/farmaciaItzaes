@@ -79,23 +79,23 @@
      <table class="table table-borderless align-middle text-secondary-subtle">
     <thead class="bg-light border border-secondary-subtle rounded-2">
         <tr>
-            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 25%;">
-                Producto <i class="fas fa-sort-up"></i>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 25%;">
+                Producto 
             </th>
-            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 15%;">
-                Categoría <i class="fas fa-sort-up"></i>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
+                Categoría 
             </th>
-            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 10%;">
-                Disponibles <i class="fas fa-sort-up"></i>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 10%;">
+                Disponibles 
             </th>
-            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 15%;">
-                Fecha de Caducidad <i class="fas fa-sort-up"></i>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
+                Fecha de Caducidad 
             </th>
-            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 10%;">
-                Precio <i class="fas fa-sort-up"></i>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 10%;">
+                Precio 
             </th>        
-            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; cursor:pointer; width: 15%;">
-                Acciones <i class="fas fa-sort-up"></i>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
+                Acciones 
             </th>
         </tr>
     </thead>
@@ -125,12 +125,12 @@
             </td>
             <td class="text-center align-middle" style="width: 15%;">
                 <div class="d-flex justify-content-center gap-2">
-<button type="button" class="btn btn-sm btn-outline-danger btn-eliminar" data-id="{{ $producto->id }}">
-    <i class="fas fa-trash"></i>
-</button>
-<button type="button" class="btn btn-sm btn-outline-primary btn-editar" data-id="{{ $producto->id }}">
-    <i class="fas fa-edit"></i>
-</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar" data-id="{{ $producto->id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-editar" data-id="{{ $producto->id }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
                 </div>
             </td>
         </tr>

@@ -11,7 +11,7 @@ class ProductoController extends Controller
 {
     public function index(){
         $categorias = Categorias::where('activo', 1)->get();
-        $productos = Productos::where('activo', 1)->get();
+        $productos = Productos::where('activo', 1)->orderBy('fecha_caducidad', 'ASC')->get();
 
         return view('content.productos',compact('categorias', 'productos'));
     }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             $table->integer('cantidad')->default(0);
+            $table->integer('cantidad_minima')->default(0);
             $table->string('imagen')->nullable();
             $table->double('precio', 100, 2);
             $table->date('dia_llegada');

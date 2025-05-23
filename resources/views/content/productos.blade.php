@@ -1,6 +1,6 @@
 @extends('layout.layout')
 @section('contenido')
-@section('titulo', 'Productos')
+@section('titulo', 'Productos / Stock')
 
   <link rel="stylesheet" href="{{ asset('css/productos.css') }}">
 
@@ -87,6 +87,12 @@
             </th>
             <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 10%;">
                 Disponibles 
+            </th>            
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 10%;">
+                Cant. Mínima
+            </th>
+            <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
+                Fecha de Llegada
             </th>
             <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
                 Fecha de Caducidad 
@@ -116,6 +122,12 @@
             </td>
             <td class="text-center align-middle" style="width: 10%;">
                 {{ $producto->cantidad }}
+            </td>
+            <td class="text-center align-middle" style="width: 10%;">
+                {{ $producto->cantidad_minima }}
+            </td>
+            <td class="text-center align-middle prod_cad" style="width: 15%;">
+                {{ $producto->dia_llegada ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}
             </td>
             <td class="text-center align-middle prod_cad" style="width: 15%;">
                 {{ $producto->fecha_caducidad ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}
@@ -162,20 +174,37 @@
                 <form id="formAgregarProducto" action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="nombre" class="form-label">Nombre</label>
                             <input type="text" class="form-control" id="nombre" name="nombre" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="imagen" class="form-label">Imagen</label>
                             <input type="file" class="form-control" id="imagen" name="imagen">
                         </div>
+                        <div class="col-md-4">
+                            <label for="categoria_id" class="form-label">Categoría</label>
+                            <select class="form-select" id="categoria_id" name="categoria_id" required>
+                                <option value="">Seleccione una categoría</option>
+                                @foreach($categorias as $categoria)
+                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-md-3">
-                            <label for="cantidad" class="form-label">Cantidad</label>
+                            <label for="unidad_medida" class="form-label">Unidad de medida</label>
+                            <input type="text" class="form-control" id="unidad_medida" name="unidad_medida">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="cantidad_minima" class="form-label">Cant. Mínima</label>
+                            <input type="number" class="form-control" id="cantidad_minima" name="cantidad_minima">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="cantidad" class="form-label">Disponibles</label>
                             <input type="number" class="form-control" id="cantidad" name="cantidad" required>
                         </div>
                         <div class="col-md-3">
-                            <label for="precio" class="form-label">Precio</label>
+                            <label for="precio" class="form-label">Precio Unit.</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" step="0.01" class="form-control" id="precio" name="precio" required>
@@ -189,19 +218,7 @@
                             <label for="fecha_caducidad" class="form-label">Fecha de caducidad</label>
                             <input type="date" class="form-control" id="fecha_caducidad" name="fecha_caducidad">
                         </div>
-                        <div class="col-md-6">
-                            <label for="categoria_id" class="form-label">Categoría</label>
-                            <select class="form-select" id="categoria_id" name="categoria_id" required>
-                                <option value="">Seleccione una categoría</option>
-                                @foreach($categorias as $categoria)
-                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="unidad_medida" class="form-label">Unidad de medida</label>
-                            <input type="text" class="form-control" id="unidad_medida" name="unidad_medida">
-                        </div>
+
                         <div class="col-12">
                             <label for="descripcion" class="form-label">Descripción</label>
                             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
@@ -230,11 +247,11 @@
                 <form id="formEditarProducto">
                     <input type="hidden" id="edit_id" name="id">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="edit_nombre" class="form-label">Nombre</label>
                             <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="edit_imagen" class="form-label">Imagen</label>
                             <input type="file" class="form-control" id="edit_imagen" name="imagen">
                             <div class="mt-2">
@@ -242,7 +259,24 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <label for="edit_cantidad" class="form-label">Cantidad</label>
+                            <label for="edit_categoria_id" class="form-label">Categoría</label>
+                            <select class="form-select" id="edit_categoria_id" name="categoria_id" required>
+                                <option value="">Seleccione una categoría</option>
+                                @foreach($categorias as $categoria)
+                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_unidad_medida" class="form-label">Unidad de medida</label>
+                            <input type="text" class="form-control" id="edit_unidad_medida" name="unidad_medida">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_cantidad_minima" class="form-label">Cant. Mínima</label>
+                            <input type="number" class="form-control" id="edit_cantidad_minima" name="cantidad_minima" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="edit_cantidad" class="form-label">Disponibles</label>
                             <input type="number" class="form-control" id="edit_cantidad" name="cantidad" required>
                         </div>
                         <div class="col-md-3">
@@ -259,19 +293,6 @@
                         <div class="col-md-3">
                             <label for="edit_fecha_caducidad" class="form-label">Fecha de caducidad</label>
                             <input type="date" class="form-control" id="edit_fecha_caducidad" name="fecha_caducidad">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="edit_categoria_id" class="form-label">Categoría</label>
-                            <select class="form-select" id="edit_categoria_id" name="categoria_id" required>
-                                <option value="">Seleccione una categoría</option>
-                                @foreach($categorias as $categoria)
-                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="edit_unidad_medida" class="form-label">Unidad de medida</label>
-                            <input type="text" class="form-control" id="edit_unidad_medida" name="unidad_medida">
                         </div>
                         <div class="col-12">
                             <label for="edit_descripcion" class="form-label">Descripción</label>

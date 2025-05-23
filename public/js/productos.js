@@ -98,6 +98,7 @@ function cargarDatosProducto(id) {
                 document.getElementById('edit_id').value = producto.id;
                 document.getElementById('edit_nombre').value = producto.nombre;
                 document.getElementById('edit_cantidad').value = producto.cantidad;
+                document.getElementById('edit_cantidad_minima').value = producto.cantidad_minima;
                 document.getElementById('edit_precio').value = producto.precio;
                 document.getElementById('edit_dia_llegada').value = producto.dia_llegada;
                 document.getElementById('edit_fecha_caducidad').value = producto.fecha_caducidad;

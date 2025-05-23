@@ -20,6 +20,7 @@ class Productos extends Model
         'categoria_id',
         'unidad_medida',
         'descripcion',
+        'cantidad_minima',
         'precio',
         'activo'
     ];

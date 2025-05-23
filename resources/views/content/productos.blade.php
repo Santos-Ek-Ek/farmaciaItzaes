@@ -5,6 +5,23 @@
   <link rel="stylesheet" href="{{ asset('css/productos.css') }}">
 
   <div class="container-fluid p-0 bg-white rounded shadow border border-secondary-subtle">
+    @if($productos->filter(fn($p) => $p->estaPorAgotarse())->count() > 0)
+<div class="alert alert-warning mb-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    @php
+        $porAgotarse = $productos->filter(fn($p) => $p->estaPorAgotarse());
+        $cantidad = $porAgotarse->count();
+    @endphp
+    Tienes {{ $cantidad }} {{ $cantidad === 1 ? 'producto' : 'productos' }} por agotarse.
+    @if($cantidad > 0)
+        <a href="#" class="alert-link" id="filtrarPorAgotarse">Filtrar</a>
+    @endif
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetearFiltros" style="display: none;">
+        <i class="fas fa-sync-alt"></i> Resetear
+    </button>
+</div>
+@endif
+
    <div class="p-4 border-bottom border-secondary-subtle">
     <h2 class="fw-semibold text-secondary mb-3" style="font-size: 0.875rem;">Filtros</h2>
     <form class="row g-3">
@@ -107,12 +124,12 @@
     </thead>
     <tbody class="border border-secondary-subtle rounded-2 bg-white">
         @foreach ($productos as $producto)
-        <tr>
+        <tr class="@if($producto->estaPorAgotarse()) producto-por-agotarse @endif">
 <td class="align-middle" style="width: 25%;">
     <div class="d-flex align-items-center gap-3">
         <img src="{{ asset($producto->imagen) }}" alt="{{ $producto->nombre }}" class="rounded" width="48" height="48" onerror="this.src='https://placehold.co/48x48?text=Imagen'" />
         <div>
-            <div class="product-name">{!! $producto->nombreConEstado() !!} - {{ $producto->unidad_medida }}</div>
+            <div class="product-name">{!! $producto->nombreConEstado() !!}</div>
             <div class="product-desc text-muted small">{{ Str::limit($producto->descripcion, 50) }}</div>
         </div>
     </div>

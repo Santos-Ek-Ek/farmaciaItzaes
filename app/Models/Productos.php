@@ -40,12 +40,29 @@ class Productos extends Model
 
 public function nombreConEstado()
 {
-    $nombre = $this->nombre;
+    $nombre = $this->nombre . ' - ' . $this->unidad_medida;
+    $estados = [];
     
     if ($this->estaCaducado()) {
-        $nombre .= ' <span class="badge bg-danger">CADUCADO</span>';
+        $estados[] = '<span class="badge bg-danger">CADUCADO</span>';
+    }
+    
+    if ($this->estaPorAgotarse()) {
+        $estados[] = '<span class="text-warning" title="Producto por agotarse"><i class="fas fa-exclamation-triangle"></i></span>';
+    }
+    
+    if (!empty($estados)) {
+        $nombre .= ' ' . implode(' ', $estados);
     }
     
     return $nombre;
 }
+
+// En tu modelo Producto
+public function estaPorAgotarse()
+{
+    return $this->cantidad <= $this->cantidad_minima;
+}
+
+
 }

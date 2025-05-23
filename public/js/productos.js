@@ -235,7 +235,7 @@ let productosFiltrados = [];
 function aplicarPaginacion() {
     const inicio = (paginaActual - 1) * itemsPorPagina;
     const fin = inicio + itemsPorPagina;
-    const filas = document.querySelectorAll('tbody tr[data-visible="true"]');
+    const filasVisibles = Array.from(document.querySelectorAll('tbody tr[data-visible="true"]'));
     
     // Ocultar todas las filas primero
     document.querySelectorAll('tbody tr').forEach(row => {
@@ -243,17 +243,18 @@ function aplicarPaginacion() {
     });
     
     // Mostrar solo las filas de la página actual
-    for (let i = inicio; i < fin && i < filas.length; i++) {
-        filas[i].style.display = '';
-    }
+    filasVisibles.slice(inicio, fin).forEach(row => {
+        row.style.display = '';
+    });
     
     // Actualizar información de paginación
-    document.getElementById('desde').textContent = inicio + 1;
-    document.getElementById('hasta').textContent = Math.min(fin, filas.length);
-    document.getElementById('total').textContent = filas.length;
+    const totalVisibles = filasVisibles.length;
+    document.getElementById('desde').textContent = totalVisibles > 0 ? inicio + 1 : 0;
+    document.getElementById('hasta').textContent = Math.min(fin, totalVisibles);
+    document.getElementById('total').textContent = totalVisibles;
     
     // Generar controles de paginación
-    generarControlesPaginacion(filas.length);
+    generarControlesPaginacion(totalVisibles);
 }
 
 // Función para generar los controles de paginación
@@ -261,6 +262,8 @@ function generarControlesPaginacion(totalItems) {
     const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
     const paginacion = document.getElementById('paginacion');
     paginacion.innerHTML = '';
+    
+    if (totalPaginas <= 1) return;
     
     // Botón Anterior
     const liAnterior = document.createElement('li');
@@ -368,6 +371,144 @@ document.addEventListener('DOMContentLoaded', function() {
         row.setAttribute('data-visible', 'true');
     });
     aplicarPaginacion();
+});
+
+// Función para filtrar productos por agotarse
+document.getElementById('filtrarPorAgotarse')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    filtrarProductosPorAgotarse();
+    
+    // Mostrar el botón de resetear
+    document.getElementById('resetearFiltros').style.display = 'inline-block';
+});
+
+// Función para resetear todos los filtros
+document.getElementById('resetearFiltros')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    resetearFiltros();
+    
+    // Ocultar el botón de resetear después de usarlo
+    this.style.display = 'none';
+});
+
+function filtrarProductosPorAgotarse() {
+    const filas = document.querySelectorAll('tbody tr');
+    let productosVisibles = 0;
+
+    filas.forEach(fila => {
+        const cantidad = parseInt(fila.querySelector('td:nth-child(3)').textContent);
+        const cantidadMinima = parseInt(fila.querySelector('td:nth-child(4)').textContent);
+        
+        if (cantidad <= cantidadMinima) {
+            fila.style.display = '';
+            fila.setAttribute('data-visible', 'true');
+            productosVisibles++;
+        } else {
+            fila.style.display = 'none';
+            fila.setAttribute('data-visible', 'false');
+        }
+    });
+
+    // Resetear a la primera página
+    paginaActual = 1;
+    aplicarPaginacion();
+    
+    if (productosVisibles === 0) {
+        mostrarNotificacion('No hay productos por agotarse', 'warning');
+    } else {
+        mostrarNotificacion(`Mostrando ${productosVisibles} productos por agotarse`, 'success');
+    }
+    
+    // Mostrar el botón de resetear
+    document.getElementById('resetearFiltros').style.display = 'inline-block';
+}
+
+// Función para resetear todos los filtros
+function resetearFiltros() {
+    const filas = document.querySelectorAll('tbody tr');
+    filas.forEach(fila => {
+        fila.style.display = '';
+        fila.setAttribute('data-visible', 'true');
+    });
+    
+    document.getElementById('buscarProducto').value = '';
+    document.getElementById('filtroCategoria').value = '';
+    document.getElementById('filtroPrecio').value = '';
+    
+    // Resetear a la primera página
+    paginaActual = 1;
+    aplicarPaginacion();
+    
+    mostrarNotificacion('Todos los filtros han sido reseteados', 'success');
+    
+    // Ocultar el botón de resetear
+    document.getElementById('resetearFiltros').style.display = 'none';
+}
+
+
+
+// Función para mostrar una página específica
+function mostrarPagina(numeroPagina) {
+    const itemsPorPagina = parseInt(document.getElementById('itemsPorPagina').value);
+    const inicio = (numeroPagina - 1) * itemsPorPagina;
+    const fin = inicio + itemsPorPagina;
+    
+    const productosVisibles = Array.from(document.querySelectorAll('tbody tr:not([style*="display: none"])'));
+    
+    productosVisibles.forEach((producto, index) => {
+        producto.style.display = (index >= inicio && index < fin) ? '' : 'none';
+    });
+    
+    // Actualizar información de paginación
+    document.getElementById('desde').textContent = inicio + 1;
+    document.getElementById('hasta').textContent = Math.min(fin, productosVisibles.length);
+    
+    // Resaltar página activa
+    document.querySelectorAll('#paginacion .page-item').forEach((item, index) => {
+        if (index === numeroPagina - 1) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+// Función para mostrar notificaciones
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    // Eliminar notificaciones anteriores
+    const alertasAnteriores = document.querySelectorAll('.alert-notificacion');
+    alertasAnteriores.forEach(alerta => alerta.remove());
+    
+    const tipos = {
+        success: 'alert-success',
+        warning: 'alert-warning',
+        danger: 'alert-danger'
+    };
+    
+    const alerta = document.createElement('div');
+    alerta.className = `alert ${tipos[tipo]} alert-dismissible fade show alert-notificacion`;
+    alerta.innerHTML = `
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const contenedor = document.querySelector('.container-fluid');
+    contenedor.insertBefore(alerta, contenedor.firstChild);
+    
+    setTimeout(() => {
+        alerta.classList.add('fade');
+        setTimeout(() => alerta.remove(), 150);
+    }, 3000);
+}
+
+// Inicializar paginación al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarPaginacion();
+    
+    // Evento para cambiar items por página
+    document.getElementById('itemsPorPagina').addEventListener('change', function() {
+        actualizarPaginacion();
+    });
 });
 
 // Asignar eventos a todos los filtros

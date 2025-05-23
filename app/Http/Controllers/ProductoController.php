@@ -9,12 +9,24 @@ use Illuminate\Support\Facades\File;
 
 class ProductoController extends Controller
 {
-    public function index(){
-        $categorias = Categorias::where('activo', 1)->get();
-        $productos = Productos::where('activo', 1)->orderBy('fecha_caducidad', 'ASC')->get();
-
-        return view('content.productos',compact('categorias', 'productos'));
-    }
+public function index()
+{
+    $categorias = Categorias::where('activo', 1)->get();
+    
+    $productos = Productos::with('categoria')
+        ->where('activo', 1)
+        ->orderByRaw('
+            CASE 
+                WHEN fecha_caducidad IS NULL THEN 1
+                WHEN fecha_caducidad <= CURDATE() THEN 2
+                ELSE 0
+            END
+        ')
+        ->orderBy('fecha_caducidad', 'ASC')
+        ->get();
+    
+    return view('content.productos', compact('categorias', 'productos'));
+}
 
 
 

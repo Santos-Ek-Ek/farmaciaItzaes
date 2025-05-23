@@ -165,7 +165,7 @@
     <div class="sidebar-content">
      <div class="d-flex justify-content-between align-items-center mb-4 sidebar-header">
       <div class="d-flex align-items-center gap-2">
-       <span class="sidebar-brand-text text-primary fw-bold fs-5 m-0">Farmacias Itzaes</span>
+       <span class="sidebar-brand-text text-primary fw-bold fs-5 m-0">Farmacia Itzaes</span>
       </div>
      </div>
      <nav class="nav flex-column gap-2">

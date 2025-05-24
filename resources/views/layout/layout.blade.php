@@ -197,7 +197,7 @@
       </button>
       <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="userDropdown">
        <li>                
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" style="margin-block-end:0em">
          @csrf
          <button type="submit" class="dropdown-item text-danger">
           <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión

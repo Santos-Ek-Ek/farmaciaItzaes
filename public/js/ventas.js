@@ -410,10 +410,158 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
+document.querySelector('.btn-success').addEventListener('click', function() {
+    if (productosEnTabla.length === 0) {
+        alert('No hay productos en la venta');
+        return;
+    }
+    
+    const modalCobro = new bootstrap.Modal(document.getElementById('modalCobro'));
+    mostrarModalCobro();
+    modalCobro.show();
+});
+function mostrarModalCobro() {
+    const detallesContainer = document.getElementById('detallesCobro');
+    detallesContainer.innerHTML = '';
+    let totalVenta = 0;
+    
+    // Llenar tabla de detalles
+    productosEnTabla.forEach(producto => {
+        const subtotal = producto.precio * producto.cantidad;
+        totalVenta += subtotal;
+        
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${producto.nombre} - ${producto.unidad_medida}</td>
+            <td class="text-end">${producto.cantidad}</td>
+            <td class="text-end">$${producto.precio.toFixed(2)}</td>
+            <td class="text-end">$${subtotal.toFixed(2)}</td>
+        `;
+        detallesContainer.appendChild(fila);
+    });
+    
+    // Actualizar total en el modal
+    document.getElementById('totalModal').textContent = `$${totalVenta.toFixed(2)}`;
+    
+    // Configurar eventos para calcular cambio
+    configurarCalculoCambio(totalVenta);
+}
+// Función para configurar el cálculo del cambio
+function configurarCalculoCambio(totalVenta) {
+    const metodoPago = document.getElementById('metodoPago');
+    const montoRecibido = document.getElementById('montoRecibido');
+    const cambioCalculado = document.getElementById('cambioCalculado');
+    const efectivoContainer = document.getElementById('efectivoContainer');
+    const tarjetaContainer = document.getElementById('tarjetaContainer');
+    
+    // Mostrar/ocultar campos según método de pago
+    metodoPago.addEventListener('change', function() {
+        if (this.value === 'efectivo') {
+            efectivoContainer.classList.remove('d-none');
+            tarjetaContainer.classList.add('d-none');
+            montoRecibido.value = '';
+            cambioCalculado.textContent = '$0.00';
+        } else {
+            efectivoContainer.classList.add('d-none');
+            tarjetaContainer.classList.remove('d-none');
+            cambioCalculado.textContent = '$0.00';
+        }
+    });
+    
+    // Calcular cambio en tiempo real
+    montoRecibido.addEventListener('input', function() {
+        const monto = parseFloat(this.value) || 0;
+        const cambio = monto - totalVenta;
+        
+        if (cambio >= 0) {
+            cambioCalculado.textContent = `$${cambio.toFixed(2)}`;
+            this.classList.remove('monto-insuficiente');
+            // Remover mensaje de error si existe
+            const errorMsg = this.nextElementSibling;
+            if (errorMsg && errorMsg.classList.contains('monto-insuficiente-texto')) {
+                errorMsg.remove();
+            }
+        } else {
+            cambioCalculado.textContent = `-$${Math.abs(cambio).toFixed(2)}`;
+            this.classList.add('monto-insuficiente');
+            
+            // Agregar mensaje de error si no existe
+            if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('monto-insuficiente-texto')) {
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'monto-insuficiente-texto';
+                errorMsg.textContent = 'El monto recibido es insuficiente';
+                this.parentNode.insertBefore(errorMsg, this.nextSibling);
+            }
+        }
+    });
+    
+    // Configurar evento para confirmar cobro
+    document.getElementById('confirmarCobro').addEventListener('click', function() {
+        const metodo = metodoPago.value;
+        
+        if (metodo === 'efectivo') {
+            const monto = parseFloat(montoRecibido.value) || 0;
+            if (monto < totalVenta) {
+                alert('El monto recibido es insuficiente');
+                return;
+            }
+        }
+        
+        // Aquí iría la lógica para procesar el cobro
+        procesarCobro(totalVenta, metodo);
+    });
+}
+// Función para procesar el cobro (simulada)
+function procesarCobro(total, metodo) {
+    console.log(`Procesando cobro de $${total.toFixed(2)} por ${metodo}`);
+    
+    // Aquí normalmente harías una petición AJAX al servidor
+    // fetch('/procesar-venta', {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //         productos: productosEnTabla,
+    //         total: total,
+    //         metodo_pago: metodo
+    //     }),
+    //     headers: {
+    //         'Content-Type': 'application/json'
+    //     }
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //     if (data.success) {
+    //         alert('Venta registrada correctamente');
+    //         limpiarVenta();
+    //     } else {
+    //         alert('Error al registrar la venta');
+    //     }
+    // });
+    
+    // Por ahora solo mostraremos un mensaje
+    alert(`Venta por $${total.toFixed(2)} procesada correctamente (Método: ${metodo})`);
+    
+    // Cerrar el modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalCobro'));
+    modal.hide();
+    
+    // Limpiar la venta (opcional)
+    limpiarVenta();
+}
+
+// Función para limpiar la venta (opcional)
+function limpiarVenta() {
+    document.getElementById('tablaProductos').innerHTML = '';
+    productosEnTabla = [];
+    localStorage.removeItem('productosVenta');
+    actualizarTotales();
+    actualizarPaginacion();
+}
+
 
 
     // Inicialización
     await cargarProductos();
     await reconstruirTablaDesdeStorage();
     actualizarPaginacion();
+
 });

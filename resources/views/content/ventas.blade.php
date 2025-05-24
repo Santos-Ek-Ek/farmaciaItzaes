@@ -36,6 +36,7 @@
       Exportar
       <i class="fas fa-chevron-down" style="font-size: 8px;"></i>
      </button>
+     <button type="button" class="btn btn-success btn-sm ms-auto ms-sm-0">Cobrar</button>
     </div>
     <div class="table-responsive">
             <div class="d-flex justify-content-end mb-2 p-2 bg-light rounded">
@@ -84,7 +85,65 @@
     </div>
    </div>
 
-
+<!-- Modal de Cobro -->
+<div class="modal fade" id="modalCobro" tabindex="-1" aria-labelledby="modalCobroLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalCobroLabel">Proceso de Cobro</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="mb-3">Detalles de la Venta</h5>
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-sm table-sticky">
+                    <thead>
+                        <tr>
+                            <th style="position: sticky; top: 0; background: white; z-index: 10;">Producto</th>
+                            <th class="text-end" style="position: sticky; top: 0; background: white; z-index: 10;">Cantidad</th>
+                            <th class="text-end" style="position: sticky; top: 0; background: white; z-index: 10;">Precio</th>
+                            <th class="text-end" style="position: sticky; top: 0; background: white; z-index: 10;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detallesCobro">
+                        <!-- Los productos se agregarán aquí -->
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end" style="position: sticky; bottom: 0; background: white; z-index: 10;">Total:</th>
+                            <th class="text-end" id="totalModal" style="position: sticky; bottom: 0; background: white; z-index: 10;">$0.00</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Datos de Pago</h5>
+                        <div class="mb-3">
+                            <label for="metodoPago" class="form-label">Método de Pago</label>
+                            <select class="form-select" id="metodoPago">
+                                <option value="efectivo">Efectivo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="efectivoContainer">
+                            <label for="montoRecibido" class="form-label">Monto Recibido</label>
+                            <input type="number" class="form-control" id="montoRecibido" placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Cambio:</strong> <span id="cambioCalculado">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmarCobro">Confirmar Cobro</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 

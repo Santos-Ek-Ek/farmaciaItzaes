@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                buscarProducto.value = '';
+                
                 resultadosBusqueda.style.display = 'none';
                 agregarProductoATabla(producto);
             });
@@ -220,18 +220,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         actualizarTotales();
     }
 
-    // Actualizar totales (implementación básica)
+    // Actualizar totales
     function actualizarTotales() {
         // Implementa el cálculo del total general aquí
         console.log('Actualizando totales...');
     }
 
-    // Paginación
+        // Función para paginación
     function actualizarPaginacion() {
         const filas = Array.from(document.querySelectorAll('#tablaProductos tr'));
-        const filasVisibles = filas.filter(fila => fila.style.display !== 'none');
+        const totalItems = filas.length;
         
-        if (filasVisibles.length === 0) {
+        // Mostrar todas las filas primero para calcular correctamente
+        filas.forEach(fila => fila.style.display = '');
+        
+        if (totalItems === 0) {
             document.getElementById('desde').textContent = '0';
             document.getElementById('hasta').textContent = '0';
             document.getElementById('total').textContent = '0';
@@ -239,36 +242,47 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         
-        const totalPaginas = Math.ceil(filasVisibles.length / itemsPorPagina);
+        const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
         
+        // Ajustar página actual si es necesario
         if (paginaActual > totalPaginas) {
             paginaActual = Math.max(1, totalPaginas);
         }
         
+        // Calcular rango de items a mostrar
         const inicio = (paginaActual - 1) * itemsPorPagina;
         const fin = inicio + itemsPorPagina;
         
-        filasVisibles.forEach((fila, index) => {
+        // Ocultar/mostrar filas según la página actual
+        filas.forEach((fila, index) => {
             fila.style.display = (index >= inicio && index < fin) ? '' : 'none';
         });
         
+        // Actualizar información de paginación
         document.getElementById('desde').textContent = inicio + 1;
-        document.getElementById('hasta').textContent = Math.min(fin, filasVisibles.length);
-        document.getElementById('total').textContent = filasVisibles.length;
+        document.getElementById('hasta').textContent = Math.min(fin, totalItems);
+        document.getElementById('total').textContent = totalItems;
         
+        // Generar controles de paginación
         generarControlesPaginacion(totalPaginas);
     }
 
+    // Función para generar controles de paginación
     function generarControlesPaginacion(totalPaginas) {
         const paginacion = document.getElementById('paginacion');
         paginacion.innerHTML = '';
         
-        if (totalPaginas <= 1) return;
+        if (totalPaginas <= 1) {
+            paginacion.style.display = 'none';
+            return;
+        }
         
-        // Botón Anterior
+        paginacion.style.display = 'flex'; 
+        
+        // Botón Anterior 
         const liAnterior = document.createElement('li');
         liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
-        liAnterior.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+        liAnterior.innerHTML = `<a class="page-link" href="#" aria-label="Anterior">&laquo;</a>`;
         liAnterior.addEventListener('click', (e) => {
             e.preventDefault();
             if (paginaActual > 1) {
@@ -278,11 +292,38 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
         paginacion.appendChild(liAnterior);
         
-        // Números de página
-        const inicioPagina = Math.max(1, paginaActual - 2);
-        const finPagina = Math.min(totalPaginas, paginaActual + 2);
+        // Números de página 
+        const maxPaginasVisibles = 5; // Máximo de botones de página a mostrar
+        let inicioPaginas = Math.max(1, paginaActual - Math.floor(maxPaginasVisibles / 2));
+        let finPaginas = Math.min(totalPaginas, inicioPaginas + maxPaginasVisibles - 1);
         
-        for (let i = inicioPagina; i <= finPagina; i++) {
+        // Ajustar si estamos cerca del final
+        if (finPaginas - inicioPaginas + 1 < maxPaginasVisibles) {
+            inicioPaginas = Math.max(1, finPaginas - maxPaginasVisibles + 1);
+        }
+        
+        // Mostrar primera página si no está visible
+        if (inicioPaginas > 1) {
+            const liPrimera = document.createElement('li');
+            liPrimera.className = 'page-item';
+            liPrimera.innerHTML = `<a class="page-link" href="#">1</a>`;
+            liPrimera.addEventListener('click', (e) => {
+                e.preventDefault();
+                paginaActual = 1;
+                actualizarPaginacion();
+            });
+            paginacion.appendChild(liPrimera);
+            
+            if (inicioPaginas > 2) {
+                const liSeparador = document.createElement('li');
+                liSeparador.className = 'page-item disabled';
+                liSeparador.innerHTML = `<span class="page-link">...</span>`;
+                paginacion.appendChild(liSeparador);
+            }
+        }
+        
+        // Botones de páginas numeradas
+        for (let i = inicioPaginas; i <= finPaginas; i++) {
             const li = document.createElement('li');
             li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
             li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
@@ -294,10 +335,30 @@ document.addEventListener('DOMContentLoaded', async function() {
             paginacion.appendChild(li);
         }
         
-        // Botón Siguiente
+        // Mostrar última página si no está visible
+        if (finPaginas < totalPaginas) {
+            if (finPaginas < totalPaginas - 1) {
+                const liSeparador = document.createElement('li');
+                liSeparador.className = 'page-item disabled';
+                liSeparador.innerHTML = `<span class="page-link">...</span>`;
+                paginacion.appendChild(liSeparador);
+            }
+            
+            const liUltima = document.createElement('li');
+            liUltima.className = 'page-item';
+            liUltima.innerHTML = `<a class="page-link" href="#">${totalPaginas}</a>`;
+            liUltima.addEventListener('click', (e) => {
+                e.preventDefault();
+                paginaActual = totalPaginas;
+                actualizarPaginacion();
+            });
+            paginacion.appendChild(liUltima);
+        }
+        
+        // Botón Siguiente 
         const liSiguiente = document.createElement('li');
         liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
-        liSiguiente.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+        liSiguiente.innerHTML = `<a class="page-link" href="#" aria-label="Siguiente">&raquo;</a>`;
         liSiguiente.addEventListener('click', (e) => {
             e.preventDefault();
             if (paginaActual < totalPaginas) {
@@ -307,6 +368,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
         paginacion.appendChild(liSiguiente);
     }
+
+ 
+    document.getElementById('itemsPorPagina').addEventListener('change', function() {
+        itemsPorPagina = parseInt(this.value);
+        paginaActual = 1; // Resetear siempre a la primera página
+        actualizarPaginacion();
+    });
+    
 
     // Eventos
     buscarProducto.addEventListener('input', (e) => {
@@ -325,11 +394,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    document.getElementById('itemsPorPagina').addEventListener('change', function() {
-        itemsPorPagina = parseInt(this.value);
-        paginaActual = 1;
-        actualizarPaginacion();
-    });
+
 
     // Inicialización
     await cargarProductos();

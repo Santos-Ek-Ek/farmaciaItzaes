@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\VentasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,10 @@ Route::get('/', function () {
 Route::get('inicio', function () {
     return view('content.inicio');
 });
+
+Route::get('ventas', [VentasController::class, 'index'])->name('ventas.index');
+Route::get('/obtener-productos', [VentasController::class, 'obtenerProductos']);
+
 
 Route::get('categorias', [CategoriaController::class, 'index'])->name('categorias.index');
 Route::get('productos', [ProductoController::class, 'index'])->name('productos.index');

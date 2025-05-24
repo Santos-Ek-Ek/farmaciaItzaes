@@ -181,7 +181,7 @@
        <i class="fas fa-th-list"></i>
        <span class="nav-link-text">Categorías</span>
       </a>
-      <a class="nav-link" href="#">
+      <a class="nav-link" href="ventas">
        <i class="fas fa-shopping-cart"></i>
        <span class="nav-link-text">Ventas</span>
       </a>

@@ -38,6 +38,12 @@
      </button>
     </div>
     <div class="table-responsive">
+            <div class="d-flex justify-content-end mb-2 p-2 bg-light rounded">
+        <div class="d-flex align-items-center gap-3">
+            <span class="fw-bold">Total General:</span>
+            <span id="totalGeneral" class="fs-5 fw-bold text-primary">$0.00</span>
+        </div>
+    </div>
      <table class="table table-borderless align-middle text-secondary-subtle">
     <thead class="bg-light border border-secondary-subtle rounded-2">
         <tr>

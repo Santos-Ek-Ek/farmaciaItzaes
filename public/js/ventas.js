@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             productosEnTabla = productosEnTabla.filter(p => p.id != producto.id);
             guardarProductosEnStorage();
             nuevaFila.remove();
+            actualizarTotales();
             actualizarPaginacion();
         });
 
@@ -200,6 +201,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         guardarProductosEnStorage();
         actualizarPaginacion();
+        actualizarTotales();
     }
 
     // Actualizar subtotal
@@ -222,8 +224,22 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Actualizar totales
     function actualizarTotales() {
-        // Implementa el cálculo del total general aquí
+        
         console.log('Actualizando totales...');
+            let totalGeneral = 0;
+    
+    // Calcular sumando todos los subtotales
+    document.querySelectorAll('.product-subtotal').forEach(subtotalElement => {
+        const subtotalTexto = subtotalElement.textContent.replace('$', '').replace(',', '');
+        const subtotal = parseFloat(subtotalTexto) || 0;
+        totalGeneral += subtotal;
+    });
+    
+    // Actualizar el elemento 
+    document.getElementById('totalGeneral').textContent = `$${totalGeneral.toFixed(2)}`;
+    
+    
+    return totalGeneral;
     }
 
         // Función para paginación

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Psy\Command\WhereamiCommand;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VentasController extends Controller
 {
@@ -49,6 +50,7 @@ public function obtenerProductos() {
             'productos.*.cantidad' => 'required|integer|min:1',
             'productos.*.precio' => 'required|numeric|min:0',
             'productos.*.subtotal' => 'required|numeric|min:0',
+            'productos.*.unidad_medida' => 'required|string',
             'total' => 'required|numeric|min:0',
             'metodo_pago' => 'required|in:efectivo,tarjeta,transferencia',
             'monto_recibido' => 'nullable|required_if:metodo_pago,efectivo|numeric|min:0'
@@ -59,6 +61,8 @@ public function obtenerProductos() {
         $fechaVenta = now()->toDateString();
         $usuarioId = auth()->id();
         $totalCalculado = collect($request->productos)->sum('subtotal');
+        $usuarioNombre = auth()->user()->nombre . ' ' . auth()->user()->apellidos;
+        $horaVenta = now()->toTimeString();
 
         // Validar que el total coincida
         if (abs($totalCalculado - $request->total) > 0.01) {
@@ -79,6 +83,7 @@ public function obtenerProductos() {
         DB::beginTransaction();
 
         try {
+            $productosVendidos = [];
             foreach ($request->productos as $producto) {
                 $productoDB = Productos::find($producto['id']);
                 
@@ -86,6 +91,15 @@ public function obtenerProductos() {
                 if ($productoDB->cantidad < $producto['cantidad']) {
                     throw new \Exception("Stock insuficiente para: {$productoDB->nombre}");
                 }
+
+                            // Guardar datos para el PDF
+            $productosVendidos[] = [
+                'nombre' => $productoDB->nombre,
+                'cantidad' => $producto['cantidad'],
+                'precio' => $producto['precio'],
+                'subtotal' => $producto['subtotal'],
+                'unidad_medida' =>$producto['unidad_medida']
+            ];
 
                 // Crear registro de venta
                 Ventas::create([
@@ -104,11 +118,33 @@ public function obtenerProductos() {
             }
             Pagos::create([
                 'numero_venta'=>$numeroVenta,
-                'total' => $totalCalculado
+                'total' => $totalCalculado,
+            'monto_recibido' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido : null,
+            'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : null
             ]);
 
             // Aquí podrías registrar también el pago en una tabla de pagos si es necesario
             DB::commit();
+                    $data = [
+            'numero_venta' => $numeroVenta,
+            'fecha' => $fechaVenta,
+            'hora' => $horaVenta,
+            'usuario' => $usuarioNombre,
+            'productos' => $productosVendidos,
+            'subtotal' => $totalCalculado,
+            'metodo_pago' => $request->metodo_pago,
+            'monto_recibido' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido : null,
+            'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : null
+        ];
+
+    // PDF normal
+    $pdfNormal = Pdf::loadView('ventas.ticket', $data);
+    $pdfNormalContent = $pdfNormal->output();
+    
+    // PDF ticket 80mm
+    $pdfTicket = Pdf::loadView('ventas.ticket_80mm', $data)
+                  ->setPaper([0, 0, 226.77, 800], 'portrait');
+    $pdfTicketContent = $pdfTicket->output();
 
             return response()->json([
                 'success' => true,
@@ -116,7 +152,9 @@ public function obtenerProductos() {
                 'fecha_venta' => $fechaVenta,
                 'total_venta' => $totalCalculado,
                 'metodo_pago' => $request->metodo_pago,
-                'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : 0
+                'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : 0,
+           'pdf_normal' => base64_encode($pdfNormalContent),
+        'pdf_ticket' => base64_encode($pdfTicketContent) 
             ]);
 
         } catch (\Exception $e) {
@@ -127,6 +165,50 @@ public function obtenerProductos() {
             ], 500);
         }
     }
+
+
+public function generarTicketVenta($numeroVenta)
+{
+    // Obtener datos de la venta
+    $venta = Ventas::where('numero_venta', $numeroVenta)
+                ->with('producto')
+                ->get();
+                
+    $pago = Pagos::where('numero_venta', $numeroVenta)->first();
+    
+    if ($venta->isEmpty()) {
+        abort(404, 'Venta no encontrada');
+    }
+
+    // Preparar datos para el ticket
+    $data = [
+        'numero_venta' => $numeroVenta,
+        'fecha' => $venta->first()->fecha_venta,
+        'hora' => $venta->first()->created_at->format('H:i:s'),
+        'usuario' => $venta->first()->usuario->name,
+        'productos' => $venta->map(function($item) {
+            return [
+                'nombre' => $item->producto->nombre,
+                'cantidad' => $item->cantidad,
+                'precio' => $item->precio_unitario,
+                'subtotal' => $item->subtotal
+            ];
+        }),
+        'subtotal' => $pago->total,
+        'metodo_pago' => $pago->metodo_pago,
+        'monto_recibido' => $pago->monto_recibido,
+        'cambio' => $pago->cambio,
+        'empresa' => [
+            'nombre' => 'FARMACIA ITZAES',
+        ]
+    ];
+
+    // Configurar PDF para tamaño ticket (80mm)
+    $pdf = Pdf::loadView('ventas.ticket_80mm', $data)
+              ->setPaper([0, 0, 226.77, 800], 'portrait'); // 80mm ~ 226.77pt
+
+    return $pdf->stream("ticket_{$numeroVenta}.pdf");
+}
 
     protected function generarNumeroVentaUnico()
     {

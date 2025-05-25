@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('numero_venta', 20);
             $table->double('total', 100, 2);
+            $table->double('monto_recibido', 100, 2);
+            $table->double('cambio', 100, 2);
             $table->timestamps();
         });
     }

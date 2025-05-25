@@ -11,6 +11,8 @@ class Pagos extends Model
     protected $table ='pagos';
     protected $fillable = [
         'numero_venta',
-        'total'
+        'total',
+        'monto_recibido',
+        'cambio'
     ];
 }

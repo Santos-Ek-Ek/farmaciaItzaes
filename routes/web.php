@@ -27,7 +27,9 @@ Route::get('inicio', function () {
 Route::get('ventas', [VentasController::class, 'index'])->name('ventas.index');
 Route::get('/obtener-productos', [VentasController::class, 'obtenerProductos']);
 
-Route::post('/procesar-venta', [VentasController::class, 'procesarVenta']); // Asegura que el usuario esté autenticado
+Route::post('/procesar-venta', [VentasController::class, 'procesarVenta']);
+Route::get('/ventas/ticket/{numeroVenta}', [VentasController::class, 'generarTicketVenta'])
+     ->name('ventas.ticket');
 
 Route::get('categorias', [CategoriaController::class, 'index'])->name('categorias.index');
 Route::get('productos', [ProductoController::class, 'index'])->name('productos.index');

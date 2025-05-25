@@ -525,6 +525,7 @@ async function procesarCobro(total, metodo) {
         const datosVenta = {
             productos: productosEnTabla.map(producto => ({
                 id: producto.id,
+                unidad_medida:producto.unidad_medida,
                 cantidad: producto.cantidad,
                 precio: producto.precio,
                 subtotal: producto.cantidad * producto.precio
@@ -551,6 +552,19 @@ async function procesarCobro(total, metodo) {
         }
         
         mostrarMensajeExito(data);
+
+        // Descargar ambos PDFs con un pequeño retraso entre ellos
+        if (data.pdf_normal) {
+            descargarPDF(data.pdf_normal, `venta_${data.numero_venta}.pdf`);
+            
+            // Pequeño retraso para evitar conflictos en la descarga
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+        
+        if (data.pdf_ticket) {
+            descargarPDF(data.pdf_ticket, `ticket_${data.numero_venta}.pdf`);
+        }
+        
         
         // Cerrar el modal
         modal.hide();
@@ -569,6 +583,42 @@ async function procesarCobro(total, metodo) {
         btnConfirmar.disabled = false;
         btnConfirmar.textContent = 'Confirmar Cobro';
     }
+}
+
+// Función para descargar PDF
+function descargarPDF(base64Data, fileName) {
+    const blob = base64ToBlob(base64Data, 'application/pdf');
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Liberar memoria
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// Función para convertir base64 a Blob
+function base64ToBlob(base64, contentType = '', sliceSize = 512) {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, { type: contentType });
 }
 
 // Función para mostrar mensaje de éxito

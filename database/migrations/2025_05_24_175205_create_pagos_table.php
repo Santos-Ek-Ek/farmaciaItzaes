@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
+            $table->string('numero_venta', 20);
+            $table->double('total', 100, 2);
             $table->timestamps();
         });
     }

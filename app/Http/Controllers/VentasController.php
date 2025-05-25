@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categorias;
+use App\Models\Pagos;
 use App\Models\Productos;
 use App\Models\Ventas;
 use Illuminate\Http\Request;
@@ -101,6 +102,10 @@ public function obtenerProductos() {
                 // Actualizar stock
                 $productoDB->decrement('cantidad', $producto['cantidad']);
             }
+            Pagos::create([
+                'numero_venta'=>$numeroVenta,
+                'total' => $totalCalculado
+            ]);
 
             // Aquí podrías registrar también el pago en una tabla de pagos si es necesario
             DB::commit();

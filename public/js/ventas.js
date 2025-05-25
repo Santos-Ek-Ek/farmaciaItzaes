@@ -511,42 +511,82 @@ function configurarCalculoCambio(totalVenta) {
         procesarCobro(totalVenta, metodo);
     });
 }
-// Función para procesar el cobro (simulada)
-function procesarCobro(total, metodo) {
-    console.log(`Procesando cobro de $${total.toFixed(2)} por ${metodo}`);
-    
-    // Aquí normalmente harías una petición AJAX al servidor
-    // fetch('/procesar-venta', {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //         productos: productosEnTabla,
-    //         total: total,
-    //         metodo_pago: metodo
-    //     }),
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     }
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         alert('Venta registrada correctamente');
-    //         limpiarVenta();
-    //     } else {
-    //         alert('Error al registrar la venta');
-    //     }
-    // });
-    
-    // Por ahora solo mostraremos un mensaje
-    alert(`Venta por $${total.toFixed(2)} procesada correctamente (Método: ${metodo})`);
-    
-    // Cerrar el modal
+// Función para procesar el cobro (versión completa)
+async function procesarCobro(total, metodo) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalCobro'));
-    modal.hide();
+    const btnConfirmar = document.getElementById('confirmarCobro');
     
-    // Limpiar la venta (opcional)
-    limpiarVenta();
+    // Deshabilitar botón para evitar múltiples clics
+    btnConfirmar.disabled = true;
+    btnConfirmar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+    
+    try {
+        // Preparar datos para enviar
+        const datosVenta = {
+            productos: productosEnTabla.map(producto => ({
+                id: producto.id,
+                cantidad: producto.cantidad,
+                precio: producto.precio,
+                subtotal: producto.cantidad * producto.precio
+            })),
+            total: total,
+            metodo_pago: metodo,
+            monto_recibido: metodo === 'efectivo' ? parseFloat(document.getElementById('montoRecibido').value) : null
+        };
+        
+        // Enviar datos al servidor
+        const response = await fetch('/procesar-venta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(datosVenta)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Error al procesar la venta');
+        }
+        
+        mostrarMensajeExito(data);
+        
+        // Cerrar el modal
+        modal.hide();
+        
+        // Recargar la página después de un breve retraso para que se vea el mensaje
+        setTimeout(() => {
+            limpiarVenta();
+            window.location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`Error al procesar la venta: ${error.message}`);
+    } finally {
+        // Restaurar botón
+        btnConfirmar.disabled = false;
+        btnConfirmar.textContent = 'Confirmar Cobro';
+    }
 }
+
+// Función para mostrar mensaje de éxito
+function mostrarMensajeExito(data) {
+    const mensaje = `
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading">Venta registrada exitosamente!</h4>
+            <p><strong>Número de venta:</strong> ${data.numero_venta}</p>
+            <p><strong>Total:</strong> $${data.total_venta.toFixed(2)}</p>
+            <p><strong>Fecha:</strong> ${data.fecha_venta}</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Mostrar alerta donde sea apropiado en tu layout
+    document.getElementById('alertContainer').innerHTML = mensaje;
+}
+
 
 // Función para limpiar la venta (opcional)
 function limpiarVenta() {

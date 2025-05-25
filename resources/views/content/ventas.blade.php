@@ -17,7 +17,7 @@
 
 </style>
   <div class="container-fluid p-0 bg-white rounded shadow border border-secondary-subtle">
-
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
    <div class="p-4">
     <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4">
 <div class="position-relative form-control-sm w-100 w-sm-auto">

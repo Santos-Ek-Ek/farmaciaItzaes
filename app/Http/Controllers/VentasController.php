@@ -137,11 +137,12 @@ public function obtenerProductos() {
             'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : null
         ];
 
-    // PDF normal
+    // PDF normal - guardar en public/Ventas_individual
     $pdfNormal = Pdf::loadView('ventas.ticket', $data);
-    $pdfNormalContent = $pdfNormal->output();
-    
-    // PDF ticket 80mm
+    $pdfNormalPath = public_path("Ventas_individual/venta_{$numeroVenta}.pdf");
+    $pdfNormal->save($pdfNormalPath);
+
+    // PDF ticket 80mm - solo generarlo para visualización
     $pdfTicket = Pdf::loadView('ventas.ticket_80mm', $data)
                   ->setPaper([0, 0, 226.77, 800], 'portrait');
     $pdfTicketContent = $pdfTicket->output();
@@ -153,8 +154,8 @@ public function obtenerProductos() {
                 'total_venta' => $totalCalculado,
                 'metodo_pago' => $request->metodo_pago,
                 'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : 0,
-           'pdf_normal' => base64_encode($pdfNormalContent),
-        'pdf_ticket' => base64_encode($pdfTicketContent) 
+'pdf_ticket' => base64_encode($pdfTicketContent),
+        'pdf_normal_path' => "/Ventas_individual/venta_{$numeroVenta}.pdf"
             ]);
 
         } catch (\Exception $e) {

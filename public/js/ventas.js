@@ -553,18 +553,21 @@ async function procesarCobro(total, metodo) {
         
         mostrarMensajeExito(data);
 
-        // Descargar ambos PDFs con un pequeño retraso entre ellos
-        if (data.pdf_normal) {
-            descargarPDF(data.pdf_normal, `venta_${data.numero_venta}.pdf`);
-            
-            // Pequeño retraso para evitar conflictos en la descarga
-            await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-        
         if (data.pdf_ticket) {
-            descargarPDF(data.pdf_ticket, `ticket_${data.numero_venta}.pdf`);
+            const blob = base64ToBlob(data.pdf_ticket, 'application/pdf');
+            const url = URL.createObjectURL(blob);
+            
+            // Abrir en nueva pestaña sin opción de descarga
+            const newWindow = window.open(url, '_blank');
+            
+            // Configurar para que cuando se cierre la pestaña, libere memoria
+            newWindow.onbeforeunload = function() {
+                URL.revokeObjectURL(url);
+            };
+            
+            // Liberar memoria después de 10 minutos por si no se cierra la pestaña
+            setTimeout(() => URL.revokeObjectURL(url), 600000);
         }
-        
         
         // Cerrar el modal
         modal.hide();
@@ -585,23 +588,19 @@ async function procesarCobro(total, metodo) {
     }
 }
 
-// Función para descargar PDF
-function descargarPDF(base64Data, fileName) {
+// Función para mostrar PDF en nueva pestaña
+function mostrarPDFEnNuevaPestaña(base64Data) {
     const blob = base64ToBlob(base64Data, 'application/pdf');
     const url = URL.createObjectURL(blob);
     
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Abrir en nueva pestaña
+    window.open(url, '_blank');
     
-    // Liberar memoria
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    // Liberar memoria después de un tiempo
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-// Función para convertir base64 a Blob
+// Función para convertir base64 a Blob (se mantiene igual)
 function base64ToBlob(base64, contentType = '', sliceSize = 512) {
     const byteCharacters = atob(base64);
     const byteArrays = [];

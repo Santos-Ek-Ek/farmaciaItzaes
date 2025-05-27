@@ -85,7 +85,7 @@
     <option value="25">25</option>
     <option value="50">50</option>
 </select>
-     <button type="button" class="btn btn-export btn-export-product btn-sm d-flex align-items-center gap-1">
+     <button type="button" class="btn btn-outline-success btn-export-product btn-sm d-flex align-items-center gap-1">
       <i class="fas fa-file-pdf"></i>
       Generar Reporte
      </button>

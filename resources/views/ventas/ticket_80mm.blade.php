@@ -91,7 +91,7 @@
         td:nth-child(3) { width: 20%; }
         td:nth-child(4) { width: 20%; }
         
-        /* Eliminar espacio para cortar ticket */
+
         .cut-line {
             text-align: center;
             font-size: 8px;
@@ -152,7 +152,7 @@
         FARMACIA ITZAES<br>
     </div>
 
-    <!-- Indicador de corte sin forzar salto de página -->
+
     <div class="cut-line">•••••••••••••••</div>
 </body>
 </html>

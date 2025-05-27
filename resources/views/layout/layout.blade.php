@@ -185,6 +185,10 @@
        <i class="fas fa-shopping-cart"></i>
        <span class="nav-link-text">Ventas</span>
       </a>
+      <a class="nav-link" href="historial">
+       <i class="fas fa-history"></i>
+       <span class="nav-link-text">Historial de Ventas</span>
+      </a>
      </nav>
     </div>
     

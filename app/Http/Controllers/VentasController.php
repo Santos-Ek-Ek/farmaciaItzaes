@@ -24,14 +24,14 @@ public function obtenerProductos() {
     $productos = Productos::where('productos.activo', 1)
         ->select([
             'productos.id',
-            'productos.nombre',  // Especifica la tabla para nombre
+            'productos.nombre',
             'productos.unidad_medida',
             'productos.cantidad',
             'productos.descripcion',
             'productos.precio',
             'productos.imagen',
-            'categorias.nombre AS categoria',  // Usa un alias claro
-            'categorias.id AS categoria_id'  // También para el ID de categoría
+            'categorias.nombre AS categoria', 
+            'categorias.id AS categoria_id'  
         ])
         ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
         ->where('cantidad', '>', '0')
@@ -123,7 +123,7 @@ public function obtenerProductos() {
             'cambio' => $request->metodo_pago === 'efectivo' ? $request->monto_recibido - $totalCalculado : null
             ]);
 
-            // Aquí podrías registrar también el pago en una tabla de pagos si es necesario
+            
             DB::commit();
                     $data = [
             'numero_venta' => $numeroVenta,
@@ -142,7 +142,7 @@ public function obtenerProductos() {
     $pdfNormalPath = public_path("Ventas_individual/venta_{$numeroVenta}.pdf");
     $pdfNormal->save($pdfNormalPath);
 
-    // PDF ticket 80mm - solo generarlo para visualización
+    // PDF ticket 80mm - solo para visualización
     $pdfTicket = Pdf::loadView('ventas.ticket_80mm', $data)
                   ->setPaper([0, 0, 226.77, 800], 'portrait');
     $pdfTicketContent = $pdfTicket->output();
@@ -227,5 +227,54 @@ public function generarTicketVenta($numeroVenta)
             ? 'VTA-' . now()->format('YmdHis') . '-' . Str::random(2)
             : $numeroVenta;
     }
+
+
+public function verpdfindividual(Request $request)
+{
+    $ruta = public_path('Ventas_individual');
+    $archivos = [];
+    
+    if (file_exists($ruta)) {
+        // Obtener todos los archivos excluyendo . y ..
+        $todosArchivos = array_diff(scandir($ruta), ['.', '..']);
+        
+        // Ordenar por fecha de modificación (más reciente primero)
+        usort($todosArchivos, function($a, $b) use ($ruta) {
+            return filemtime($ruta.'/'.$b) - filemtime($ruta.'/'.$a);
+        });
+        
+        // Configuración de paginación
+        $porPagina = $request->input('porPagina', 10); // Valor por defecto 10
+        $pagina = $request->input('pagina', 1);
+        
+        // Crear paginador manual
+        $offset = ($pagina - 1) * $porPagina;
+        $archivos = array_slice($todosArchivos, $offset, $porPagina);
+        
+        $totalArchivos = count($todosArchivos);
+        $totalPaginas = ceil($totalArchivos / $porPagina);
+    }
+    
+    return view('content.historial', [
+        'archivos' => $archivos,
+        'totalArchivos' => $totalArchivos ?? 0,
+        'paginaActual' => $pagina ?? 1,
+        'porPagina' => $porPagina ?? 10,
+        'totalPaginas' => $totalPaginas ?? 1
+    ]);
+}
+public function eliminarReporte(Request $request)
+{
+    $archivo = $request->input('archivo');
+    $ruta = public_path('Ventas_individual/'.$archivo);
+    
+    if (file_exists($ruta)) {
+        if (unlink($ruta)) {
+            return response()->json(['success' => true]);
+        }
+    }
+    
+    return response()->json(['success' => false, 'message' => 'El archivo no existe o no se pudo eliminar']);
+}
 
 }

@@ -24,6 +24,10 @@ Route::get('inicio', function () {
     return view('content.inicio');
 });
 
+Route::get('historial', [VentasController::class, 'verpdfindividual'])->name('verpdfindividual');
+Route::post('/eliminar-reporte', [VentasController::class, 'eliminarReporte'])->name('eliminar.reporte');
+
+
 Route::get('ventas', [VentasController::class, 'index'])->name('ventas.index');
 Route::get('/obtener-productos', [VentasController::class, 'obtenerProductos']);
 

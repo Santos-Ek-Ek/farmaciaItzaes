@@ -231,42 +231,72 @@ public function generarTicketVenta($numeroVenta)
 
 public function verpdfindividual(Request $request)
 {
-    $ruta = public_path('Ventas_individual');
-    $archivos = [];
-    
-    if (file_exists($ruta)) {
-        // Obtener todos los archivos excluyendo . y ..
-        $todosArchivos = array_diff(scandir($ruta), ['.', '..']);
-        
-        // Ordenar por fecha de modificación (más reciente primero)
-        usort($todosArchivos, function($a, $b) use ($ruta) {
-            return filemtime($ruta.'/'.$b) - filemtime($ruta.'/'.$a);
+    // Configuración de paginación
+    $porPagina = $request->input('porPagina', 10);
+    $pagina = $request->input('pagina', 1);
+    $porPaginaInventario = $request->input('porPaginaInventario', 10);
+    $paginaInventario = $request->input('paginaInventario', 1);
+
+    // Procesar Ventas Individuales
+    $rutaVentas = public_path('Ventas_individual');
+    $archivosVentas = [];
+    $totalArchivosVentas = 0;
+    $totalPaginasVentas = 1;
+
+    if (file_exists($rutaVentas)) {
+        $todosArchivosVentas = array_diff(scandir($rutaVentas), ['.', '..']);
+        usort($todosArchivosVentas, function($a, $b) use ($rutaVentas) {
+            return filemtime($rutaVentas.'/'.$b) - filemtime($rutaVentas.'/'.$a);
         });
-        
-        // Configuración de paginación
-        $porPagina = $request->input('porPagina', 10); // Valor por defecto 10
-        $pagina = $request->input('pagina', 1);
-        
-        // Crear paginador manual
+
         $offset = ($pagina - 1) * $porPagina;
-        $archivos = array_slice($todosArchivos, $offset, $porPagina);
+        $archivosVentas = array_slice($todosArchivosVentas, $offset, $porPagina);
         
-        $totalArchivos = count($todosArchivos);
-        $totalPaginas = ceil($totalArchivos / $porPagina);
+        $totalArchivosVentas = count($todosArchivosVentas);
+        $totalPaginasVentas = ceil($totalArchivosVentas / $porPagina);
     }
-    
+
+    // Procesar Reportes de Ventas (Inventario)
+    $rutaInventario = public_path('Reporte_ventas');
+    $archivosInventario = [];
+    $totalArchivosInventario = 0;
+    $totalPaginasInventario = 1;
+
+    if (file_exists($rutaInventario)) {
+        $todosArchivosInventario = array_diff(scandir($rutaInventario), ['.', '..']);
+        usort($todosArchivosInventario, function($a, $b) use ($rutaInventario) {
+            return filemtime($rutaInventario.'/'.$b) - filemtime($rutaInventario.'/'.$a);
+        });
+
+        $offsetInventario = ($paginaInventario - 1) * $porPaginaInventario;
+        $archivosInventario = array_slice($todosArchivosInventario, $offsetInventario, $porPaginaInventario);
+        
+        $totalArchivosInventario = count($todosArchivosInventario);
+        $totalPaginasInventario = ceil($totalArchivosInventario / $porPaginaInventario);
+    }
+
     return view('content.historial', [
-        'archivos' => $archivos,
-        'totalArchivos' => $totalArchivos ?? 0,
-        'paginaActual' => $pagina ?? 1,
-        'porPagina' => $porPagina ?? 10,
-        'totalPaginas' => $totalPaginas ?? 1
+        'archivos' => $archivosVentas,
+        'totalArchivos' => $totalArchivosVentas,
+        'paginaActual' => $pagina,
+        'porPagina' => $porPagina,
+        'totalPaginas' => $totalPaginasVentas,
+        'archivosInventario' => $archivosInventario,
+        'totalArchivosInventario' => $totalArchivosInventario,
+        'paginaActualInventario' => $paginaInventario,
+        'porPaginaInventario' => $porPaginaInventario,
+        'totalPaginasInventario' => $totalPaginasInventario
     ]);
 }
+
 public function eliminarReporte(Request $request)
 {
     $archivo = $request->input('archivo');
-    $ruta = public_path('Ventas_individual/'.$archivo);
+    $tipo = $request->input('tipo', 'ventas'); 
+    
+    $ruta = $tipo === 'inventario' 
+        ? public_path('Reporte_ventas/'.$archivo)
+        : public_path('Ventas_individual/'.$archivo);
     
     if (file_exists($ruta)) {
         if (unlink($ruta)) {
@@ -279,24 +309,48 @@ public function eliminarReporte(Request $request)
 
 public function obtenerTodosReportes()
 {
-    $directorio = public_path('Ventas_individual');
-    $archivos = glob($directorio . '/*.pdf');
+    // Obtener archivos de Ventas Individuales
+    $directorioVentas = public_path('Ventas_individual');
+    $archivosVentas = glob($directorioVentas . '/*.pdf');
     
-    $resultados = [];
-    foreach ($archivos as $archivo) {
+    $resultadosVentas = [];
+    foreach ($archivosVentas as $archivo) {
         $nombreArchivo = basename($archivo);
         $timestamp = filemtime($archivo);
-        $fechaModificacion = date("d/m/Y H:i", filemtime($archivo));
+        $fechaModificacion = date("d/m/Y H:i", $timestamp);
         
-        $resultados[] = [
+        $resultadosVentas[] = [
             'archivo' => $nombreArchivo,
             'fecha' => $fechaModificacion,
-            'timestamp' =>$timestamp
+            'timestamp' => $timestamp,
+            'tipo' => 'ventas'
         ];
     }
-        usort($resultados, function($a, $b) {
+
+    // Obtener archivos de Reportes de Ventas (Inventario)
+    $directorioInventario = public_path('Reporte_ventas');
+    $archivosInventario = glob($directorioInventario . '/*.pdf');
+    
+    $resultadosInventario = [];
+    foreach ($archivosInventario as $archivo) {
+        $nombreArchivo = basename($archivo);
+        $timestamp = filemtime($archivo);
+        $fechaModificacion = date("d/m/Y H:i", $timestamp);
+        
+        $resultadosInventario[] = [
+            'archivo' => $nombreArchivo,
+            'fecha' => $fechaModificacion,
+            'timestamp' => $timestamp,
+            'tipo' => 'inventario'
+        ];
+    }
+
+    
+    $resultados = array_merge($resultadosVentas, $resultadosInventario);
+    usort($resultados, function($a, $b) {
         return $b['timestamp'] - $a['timestamp'];
     });
+
     return response()->json($resultados);
 }
 

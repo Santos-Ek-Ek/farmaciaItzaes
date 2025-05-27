@@ -277,4 +277,27 @@ public function eliminarReporte(Request $request)
     return response()->json(['success' => false, 'message' => 'El archivo no existe o no se pudo eliminar']);
 }
 
+public function obtenerTodosReportes()
+{
+    $directorio = public_path('Ventas_individual');
+    $archivos = glob($directorio . '/*.pdf');
+    
+    $resultados = [];
+    foreach ($archivos as $archivo) {
+        $nombreArchivo = basename($archivo);
+        $timestamp = filemtime($archivo);
+        $fechaModificacion = date("d/m/Y H:i", filemtime($archivo));
+        
+        $resultados[] = [
+            'archivo' => $nombreArchivo,
+            'fecha' => $fechaModificacion,
+            'timestamp' =>$timestamp
+        ];
+    }
+        usort($resultados, function($a, $b) {
+        return $b['timestamp'] - $a['timestamp'];
+    });
+    return response()->json($resultados);
+}
+
 }

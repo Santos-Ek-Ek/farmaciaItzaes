@@ -26,6 +26,7 @@ Route::get('inicio', function () {
 
 Route::get('historial', [VentasController::class, 'verpdfindividual'])->name('verpdfindividual');
 Route::post('/eliminar-reporte', [VentasController::class, 'eliminarReporte'])->name('eliminar.reporte');
+Route::get('/obtener-todos-reportes', [VentasController::class, 'obtenerTodosReportes'])->name('obtener.todos.reportes');
 
 
 Route::get('ventas', [VentasController::class, 'index'])->name('ventas.index');

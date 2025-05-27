@@ -189,58 +189,93 @@
     </div>
 </div>
 
-<!-- Incluye jQuery, Bootstrap JS y Font Awesome -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-
 <script>
-$(document).ready(function() {
-    // Variables para el archivo a eliminar
+    $(document).ready(function() {
     let archivoAEliminar = '';
-    
-    // Manejar cambio en el select de items por página
-    $('#itemsPorPagina').change(function() {
-        const porPagina = $(this).val();
-        // Redirigir con los nuevos parámetros
-        window.location.href = `?pagina=1&porPagina=${porPagina}`;
-    });
-    
-    // Configurar el valor actual del select
-    $('#itemsPorPagina').val({{ $porPagina }});
-    
+    let todosLosArchivos = []; // Almacenará todos los registros
+
+    // Función para cargar todos los archivos 
+    function cargarTodosLosArchivos(callback) {
+        $.get('{{ route("obtener.todos.reportes") }}', function(response) {
+            todosLosArchivos = response;
+            if (callback) callback();
+        }).fail(function() {
+            mostrarAlerta('danger', 'Error al cargar los reportes');
+        });
+    }
+
+    // Cargar todos los archivos al iniciar
+    cargarTodosLosArchivos();
+
     // Búsqueda en tiempo real
     $('#buscarVenta').on('input', function() {
         const valor = $(this).val().toLowerCase();
-        const $filas = $('#tablaReportes tr');
-        let hayResultados = false;
-        
-        $filas.each(function() {
-            // Excluir la fila de "no hay resultados" del filtrado
-            if($(this).find('td').length !== 3) return;
-            
-            const coincide = $(this).text().toLowerCase().includes(valor);
-            $(this).toggle(coincide);
-            if(coincide) hayResultados = true;
-        });
-        
-        // Mostrar mensaje si no hay coincidencias
-        const $noResults = $('#tablaReportes .no-results');
-        if(!hayResultados && $filas.not('.no-results').length > 0) {
-            if($noResults.length === 0) {
-                $('#tablaReportes').append(
-                    '<tr class="no-results"><td colspan="3" class="text-center py-4">No se encontraron resultados</td></tr>'
-                );
-            }
+        const $paginacion = $('#paginacion');
+        const $infoPaginacion = $('#infoPaginacion');
+        const $tablaBody = $('#tablaReportes');
+
+        if(valor.length === 0) {
+            location.reload();
+            return;
+        }
+
+        // Ocultar paginación durante la búsqueda
+        $paginacion.hide();
+        $infoPaginacion.text('Buscando en todos los reportes...');
+
+        // Si ya tenemos todos los archivos cargados, usarlos
+        if(todosLosArchivos.length > 0) {
+            realizarBusqueda(valor);
         } else {
-            $noResults.remove();
+            // Si no, cargarlos primero
+            cargarTodosLosArchivos(function() {
+                realizarBusqueda(valor);
+            });
         }
     });
+
+    // Función para realizar la búsqueda
+    function realizarBusqueda(valor) {
+        const $tablaBody = $('#tablaReportes');
+        $tablaBody.empty();
+
+        // Filtrar todos los registros
+        const resultados = todosLosArchivos.filter(item => 
+            item.archivo.toLowerCase().includes(valor) || 
+            item.fecha.toLowerCase().includes(valor));
+
+        if(resultados.length === 0) {
+            $tablaBody.append(
+                '<tr class="no-results"><td colspan="3" class="text-center py-4">No se encontraron resultados</td></tr>'
+            );
+            $('#infoPaginacion').text('0 resultados encontrados');
+        } else {
+            resultados.forEach(item => {
+                $tablaBody.append(`
+                    <tr>
+                        <td class="text-center">${item.archivo}</td>
+                        <td class="text-center">${item.fecha}</td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{{ asset('Ventas_individual/') }}/${item.archivo}" target="_blank" class="btn btn-sm btn-primary acciones-btn">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+                                <button class="btn btn-sm btn-danger acciones-btn btn-eliminar" data-archivo="${item.archivo}">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+            $('#infoPaginacion').text(`${resultados.length} resultados encontrados`);
+        }
+    }
     
     // Inicializar tooltips
     $('[data-bs-toggle="tooltip"]').tooltip();
     
-    // Manejar el botón de eliminar 
+    // Manejar el botón de eliminar (con delegación de eventos)
     $(document).on('click', '.btn-eliminar', function() {
         archivoAEliminar = $(this).data('archivo');
         $('#confirmarEliminarModal').modal('show');
@@ -258,7 +293,6 @@ $(document).ready(function() {
             success: function(response) {
                 if(response.success) {
                     mostrarAlerta('success', 'Reporte eliminado correctamente');
-                    // Recargar la página después de 1.5 segundos
                     setTimeout(() => {
                         location.reload();
                     }, 1500);
@@ -276,9 +310,7 @@ $(document).ready(function() {
     
     // Función para mostrar alertas
     function mostrarAlerta(tipo, mensaje) {
-        // Limpiar alertas existentes
         $('#alertContainer').empty();
-        
         const alerta = `
             <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
                 ${mensaje}
@@ -286,8 +318,6 @@ $(document).ready(function() {
             </div>
         `;
         $('#alertContainer').append(alerta);
-        
-        // Eliminar la alerta después de 5 segundos
         setTimeout(() => {
             $('.alert').alert('close');
         }, 5000);

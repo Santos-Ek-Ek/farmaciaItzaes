@@ -19,4 +19,9 @@ class Ventas extends Model
         'usuario_id',
         'fecha_venta',
     ];
+
+    public function pagos()
+{
+    return $this->hasMany(Pagos::class, 'numero_venta', 'numero_venta');
+}
 }

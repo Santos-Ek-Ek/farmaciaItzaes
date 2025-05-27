@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\InicioController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentasController;
 
@@ -20,9 +21,9 @@ use App\Http\Controllers\VentasController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('inicio', function () {
-    return view('content.inicio');
-});
+
+
+Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
 
 Route::get('historial', [VentasController::class, 'verpdfindividual'])->name('verpdfindividual');
 Route::post('/eliminar-reporte', [VentasController::class, 'eliminarReporte'])->name('eliminar.reporte');

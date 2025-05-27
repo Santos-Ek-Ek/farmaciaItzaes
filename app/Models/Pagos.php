@@ -15,4 +15,9 @@ class Pagos extends Model
         'monto_recibido',
         'cambio'
     ];
+
+    public function venta()
+{
+    return $this->belongsTo(Ventas::class, 'numero_venta', 'numero_venta');
+}
 }

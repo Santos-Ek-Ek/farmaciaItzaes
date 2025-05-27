@@ -87,7 +87,7 @@
 </select>
      <button type="button" class="btn btn-export btn-export-product btn-sm d-flex align-items-center gap-1">
       <i class="fas fa-file-pdf"></i>
-      Generar reporte
+      Generar Reporte
      </button>
      <button type="button" class="btn btn-add btn-sm ms-auto ms-sm-0" data-bs-toggle="modal" data-bs-target="#agregarProductoModal">+ Agregar Producto</button>
     </div>
@@ -149,7 +149,7 @@
                 {{ $producto->fecha_caducidad ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}
             </td>
             <td class="text-center align-middle" style="width: 10%;">
-                ${{ number_format($producto->precio , 2) }} <!-- Reemplaza con $producto->precio si existe -->
+                ${{ number_format($producto->precio , 2) }}
             </td>
             <td class="text-center align-middle" style="width: 15%;">
                 <div class="d-flex justify-content-center gap-2">

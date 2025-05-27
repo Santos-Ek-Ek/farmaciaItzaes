@@ -367,7 +367,7 @@ document.querySelector('.btn-export-product').addEventListener('click', function
     })
     .finally(() => {
         // Restaurar botón
-        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Generar reporte';
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Generar Reporte';
         btn.disabled = false;
     });
 });

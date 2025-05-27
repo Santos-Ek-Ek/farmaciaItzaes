@@ -320,7 +320,7 @@ function aplicarFiltros() {
         const descripcion = row.querySelector('.product-desc').textContent.toLowerCase();
         const caducidad = row.querySelector('.prod_cad').textContent.toLowerCase();
         const categoria = row.querySelector('td:nth-child(2)').textContent.trim();
-        const precio = parseFloat(row.querySelector('td:nth-child(5)').textContent.replace(/[^\d.]/g, ''));
+        const precio = parseFloat(row.querySelector('td:nth-child(7)').textContent.replace(/[^\d.]/g, ''));
         
         // Filtro de búsqueda
         const coincideBusqueda = !searchTerm || 
@@ -501,15 +501,6 @@ function mostrarNotificacion(mensaje, tipo = 'success') {
     }, 3000);
 }
 
-// Inicializar paginación al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    actualizarPaginacion();
-    
-    // Evento para cambiar items por página
-    document.getElementById('itemsPorPagina').addEventListener('change', function() {
-        actualizarPaginacion();
-    });
-});
 
 
 

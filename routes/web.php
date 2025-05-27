@@ -43,6 +43,7 @@ Route::post('productos-agregar', [ProductoController::class, 'store'])->name('pr
 Route::get('/productos/{id}/edit', [ProductoController::class, 'edit'])->name('productos.edit');
 Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
 Route::put('/productos-eliminar/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
+Route::post('/generar-reporte-productos', [ProductoController::class, 'generarReporte'])->name('generar.reporte.productos');
 
 Route::post('categorias-agregar', [CategoriaController::class, 'store'])->name('categorias.store');
 Route::put('categorias-eliminar/{id}', [CategoriaController::class, 'destroy'])->name('categorias.destroy');

@@ -6,6 +6,8 @@ use App\Models\Categorias;
 use App\Models\Productos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ProductoController extends Controller
 {
@@ -169,5 +171,76 @@ public function destroy($id)
             'message' => 'Error al desactivar el producto: ' . $e->getMessage()
         ], 500);
     }
+}
+
+
+public function generarReporte(Request $request)
+{
+    // Obtener los productos con los mismos filtros que la vista
+    $productos = Productos::query()
+        ->with('categoria')
+        ->when($request->categoria_id, function($query, $categoria_id) {
+            return $query->where('categoria_id', $categoria_id);
+        })
+        ->when($request->filtroPrecio, function($query, $rangoPrecio) {
+            $precios = explode('-', $rangoPrecio);
+            if(count($precios) == 2) {
+                return $query->whereBetween('precio', [$precios[0], $precios[1]]);
+            }
+            return $query;
+        })
+        ->when($request->busqueda, function($query, $busqueda) {
+            return $query->where('nombre', 'like', "%{$busqueda}%");
+        })
+        ->orderBy('nombre')
+        ->get();
+
+    // Productos por agotarse
+    $porAgotarse = $productos->filter(fn($p) => $p->estaPorAgotarse());
+    $responsable = auth()->user()->nombre. ' '. auth()->user()->apellidos;
+    
+    // Datos para el reporte
+    $data = [
+        'encargado' => $responsable,
+        'fecha' => Carbon::now()->format('d/m/Y H:i:s'),
+        'productos' => $productos,
+        'porAgotarse' => $porAgotarse,
+        'totalProductos' => $productos->count(),
+        'totalPorAgotarse' => $porAgotarse->count(),
+        'totalValorInventario' => $productos->sum(fn($p) => $p->precio * $p->cantidad),
+    ];
+
+    // Generar PDF
+    $pdf = PDF::loadView('reportes.inventario', $data);
+
+    $pdf->setPaper('A4', 'landscape');
+    $pdf->setOptions([
+        'isHtml5ParserEnabled' => true,
+        'isRemoteEnabled' => true,
+        'defaultFont' => 'sans-serif'
+    ]);
+    
+    // Nombre del archivo
+    $filename = 'reporte_inventario_'.Carbon::now()->format('d-m-Y').'.pdf';
+    
+    // Ruta de almacenamiento 
+    $publicPath = public_path('Reporte_ventas/');
+    
+    // Crear directorio si no existe
+    if (!file_exists($publicPath)) {
+        mkdir($publicPath, 0777, true);
+    }
+    
+    // Guardar el archivo en public/Reporte_ventas
+    $pdf->save($publicPath.$filename);
+    
+    // URL para acceder al archivo
+    $pdfUrl = url('Reporte_ventas/'.$filename);
+    
+    // Redireccionar a la vista del PDF en nueva pestaña
+    return response()->json([
+        'success' => true,
+        'pdf_url' => $pdfUrl
+    ]);
 }
 }

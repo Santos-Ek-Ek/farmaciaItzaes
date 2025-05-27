@@ -85,10 +85,9 @@
     <option value="25">25</option>
     <option value="50">50</option>
 </select>
-     <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-      <i class="fas fa-upload"></i>
-      Exportar
-      <i class="fas fa-chevron-down" style="font-size: 8px;"></i>
+     <button type="button" class="btn btn-export btn-export-product btn-sm d-flex align-items-center gap-1">
+      <i class="fas fa-file-pdf"></i>
+      Generar reporte
      </button>
      <button type="button" class="btn btn-add btn-sm ms-auto ms-sm-0" data-bs-toggle="modal" data-bs-target="#agregarProductoModal">+ Agregar Producto</button>
     </div>
@@ -330,5 +329,48 @@
 
 
 <script src="js/productos.js"></script>
+<script>
+document.querySelector('.btn-export-product').addEventListener('click', function() {
+   
+    const filtros = {
+        categoria_id: document.getElementById('filtroCategoria').value,
+        filtroPrecio: document.getElementById('filtroPrecio').value,
+        busqueda: document.getElementById('buscarProducto').value
+    };
+
+    // Mostrar loader
+    const btn = this;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+    btn.disabled = true;
+
+    
+    fetch('{{ route("generar.reporte.productos") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(filtros)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Abrir PDF en nueva pestaña
+            window.open(data.pdf_url, '_blank');
+        } else {
+            alert('Error al generar el reporte');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al generar el reporte');
+    })
+    .finally(() => {
+        // Restaurar botón
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Generar reporte';
+        btn.disabled = false;
+    });
+});
+</script>
 
 @endsection

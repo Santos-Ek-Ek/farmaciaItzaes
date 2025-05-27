@@ -511,6 +511,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+
+
+
 // Asignar eventos a todos los filtros
 document.getElementById('buscarProducto').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroCategoria').addEventListener('change', aplicarFiltros);

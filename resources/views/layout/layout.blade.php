@@ -189,7 +189,11 @@
       </a>
       <a class="nav-link" href="historial">
        <i class="fas fa-history"></i>
-       <span class="nav-link-text">Historial de Ventas</span>
+       <span class="nav-link-text">Historial de Reportes</span>
+      </a>
+      <a class="nav-link" href="empleados">
+       <i class="fas fa-users"></i>
+       <span class="nav-link-text">Empleados</span>
       </a>
      </nav>
     </div>

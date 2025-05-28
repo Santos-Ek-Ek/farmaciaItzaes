@@ -82,6 +82,13 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
+                                <input type="telefono" class="form-control form-control-lg" placeholder="Telefono" name="telefono" id="telefono"
+                                    aria-label="Telefono" aria-describedby="telefono-addon" value="{{ old('telefono') }}">
+                                @error('telefono')
+                                <p class="text-danger text-xs mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
                                 <input type="password" class="form-control form-control-lg" placeholder="Contraseña" name="password"
                                     id="password" aria-label="Password" aria-describedby="password-addon">
                                 @error('password')

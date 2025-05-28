@@ -38,36 +38,39 @@ public function register(Request $request)
             'nombre' => $request->nombre,
             'apellidos' => $request->apellido,
             'email' => $request->email,
+            'telefono'=>$request->telefono,
             'password' => Hash::make($request->password),
             'rol' => 'Administrador', // Asignar rol 
+            'activo' => 1
         ]);
 
         // Redireccionar después del registro
         return redirect()->route('login')->with('success', 'Registro exitoso. Por favor inicia sesión.');
     }
 
-     public function login(Request $request)
-    {
-        // Validación de los datos del formulario
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+public function login(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        // Intentar autenticar al usuario
-        if (Auth::attempt($credentials)) {
-            // Regenerar la sesión para prevenir fixation attacks
-            $request->session()->regenerate();
+    // Primero, verificar si el usuario existe y está activo
+    $user = User::where('email', $request->email)->where('activo', 1)->first();
 
-            // Redireccionar al dashboard o página principal después del login
-            return redirect()->intended('inicio');
-        }
-
-        // Si la autenticación falla, retornar con errores
-        return back()->withErrors([
-            'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
-        ])->onlyInput('email');
+    if ($user && Hash::check($request->password, $user->password)) {
+        Auth::login($user);
+        $request->session()->regenerate();
+        return redirect()->intended('inicio');
     }
+
+    // Mensaje de error específico
+    $errorMsg = !User::where('email', $request->email)->exists()
+        ? 'El correo no está registrado.'
+        : ($user ? 'Contraseña incorrecta.' : 'La cuenta está inactiva.');
+
+    return back()->withErrors(['email' => $errorMsg])->onlyInput('email');
+}
 
     public function logout(Request $request)
     {
@@ -77,5 +80,9 @@ public function register(Request $request)
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    public function verEmpleados(){
+        return view('content.empleados');
     }
 }

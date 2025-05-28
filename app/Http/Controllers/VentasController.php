@@ -385,17 +385,26 @@ public function generarReporteVenta(Request $request)
             throw new \Exception("No hay datos para el rango de fechas seleccionado");
         }
 
+        $totalGeneralResult = DB::selectOne("
+            SELECT SUM(subtotal) as total_general 
+            FROM ventas 
+            WHERE fecha_venta BETWEEN ? AND ?  
+        ", [$fechaInicio, $fechaFin]);
 
-$totalGeneralResult = DB::selectOne("
-    SELECT SUM(subtotal) as total_general 
-    FROM ventas 
-    WHERE fecha_venta BETWEEN ? AND ?  
-", [$fechaInicio, $fechaFin]);
-
-$totalGeneral = $totalGeneralResult->total_general ?? 0;
-
+        $totalGeneral = $totalGeneralResult->total_general ?? 0;
 
         if ($request->tipo === 'pdf') {
+            // Crear directorio si no existe
+            $directory = public_path('Reportes');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            // Generar nombre único para el archivo
+            $filename = 'reporte_ventas_'.now()->format('Y-m-d').'.pdf';
+            $filepath = $directory.'/'.$filename;
+
+            // Generar y guardar el PDF
             $pdf = PDF::loadView('reportes.ventas_pdf', [
                 'ventas' => $ventas,
                 'fechaInicio' => $fechaInicio,
@@ -403,7 +412,14 @@ $totalGeneral = $totalGeneralResult->total_general ?? 0;
                 'totalGeneral' => $totalGeneral
             ]);
             
-            return $pdf->download('reporte_ventas_'.now()->format('Ymd').'.pdf');
+            $pdf->save($filepath);
+
+           
+            return response()->json([
+                'success' => true,
+                'url' => asset('Reportes/'.$filename)
+            ]);
+
         }
     } catch (\Exception $e) {
         return response()->json([

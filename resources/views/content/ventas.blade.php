@@ -227,40 +227,46 @@ function generarReporte(fechaInicio, fechaFin, tipo) {
     mostrarAlerta('info', 'Generando reporte, por favor espere...');
     $('#btnGenerarReporte').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...');
     
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{{ route("generar.reporte.venta") }}';
-    form.target = '_blank';
-    
-
-    const csrf = document.createElement('input');
-    csrf.type = 'hidden';
-    csrf.name = '_token';
-    csrf.value = '{{ csrf_token() }}';
-    form.appendChild(csrf);
-    
-
-    const addField = (name, value) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-    };
-    
-    addField('fecha_inicio', fechaInicio);
-    addField('fecha_fin', fechaFin);
-    addField('tipo', tipo);
-    
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-    
-
-    setTimeout(() => {
-        $('#btnGenerarReporte').prop('disabled', false).text('Generar Reporte');
-    }, 3000);
+    $.ajax({
+        url: '{{ route("generar.reporte.venta") }}',
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin,
+            tipo: tipo
+        },
+        success: function(response) {
+            $('#btnGenerarReporte').prop('disabled', false).text('Generar Reporte');
+            
+            if (response.success) {
+                mostrarAlerta('success', 'Reporte generado correctamente');
+                
+                // Abrir PDF en nueva pestaña
+                if (response.url) {
+                    window.open(response.url, '_blank');
+                }
+            const fechaInicio = $('#fechaInicio').val('');
+            const fechaFin = $('#fechaFin').val('');
+            const tipoReporte = $('#tipoReporte').val();
+            } else {
+                const errorMsg = response.message || 'Error desconocido al generar el reporte';
+                mostrarAlerta('danger', errorMsg);
+                console.error('Error en la respuesta:', response);
+            }
+        },
+        error: function(xhr) {
+            $('#btnGenerarReporte').prop('disabled', false).text('Generar Reporte');
+            
+            let errorMessage = 'Error al conectar con el servidor';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            mostrarAlerta('danger', errorMessage);
+            console.error('Error en la petición:', xhr.statusText);
+        }
+    });
 }
 
     function mostrarAlerta(tipo, mensaje) {

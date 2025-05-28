@@ -23,6 +23,7 @@ Route::get('/', function () {
 });
 
 Route::get('empleados',[AuthController::class, 'verEmpleados'])->name('empleados');
+Route::post('/empleados-agregar', [AuthController::class, 'agregarEmpleado'])->name('empleados.agregar');
 
 
 Route::post('/generar-reporte', [VentasController::class, 'generarReporteVenta'])->name('generar.reporte.venta');

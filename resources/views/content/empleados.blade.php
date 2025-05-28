@@ -13,6 +13,10 @@
         white-space: normal;
         word-wrap: break-word;
     }
+
+    .password-mismatch {
+        border-color: #dc3545 !important;
+    }
 </style>
 
 <div class="container-fluid p-0 bg-white rounded shadow border border-secondary-subtle">
@@ -84,32 +88,45 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="nombre" class="form-label">Nombre</label>
+                            <label for="nombre" class="form-label">Nombre(s)</label>
                             <input type="text" class="form-control" id="nombre" name="nombre" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="apellido" class="form-label">Apellido</label>
+                            <label for="apellido" class="form-label">Apellidos</label>
                             <input type="text" class="form-control" id="apellido" name="apellido" required>
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="telefono" class="form-label">Teléfono</label>
-                            <input type="tel" class="form-control" id="telefono" name="telefono">
-                        </div>
-                        <div class="col-md-6">
+<div class="col-md-6">
+    <label for="telefono" class="form-label">Teléfono</label>
+    <input type="text" 
+           class="form-control" 
+           id="telefono" 
+           name="telefono" 
+           pattern="\d{10}" 
+           maxlength="10"
+           title="Debe contener exactamente 10 dígitos"
+           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+</div>
+                        <div class="col-md-4">
                             <label for="rol" class="form-label">Rol</label>
                             <select class="form-select" id="rol" name="rol" required>
                                 <option value="">Seleccionar rol</option>
-                                <option value="admin">Administrador</option>
-                                <option value="empleado">Empleado</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Empleado">Empleado</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                            <small class="text-muted">Mínimo 8 caracteres</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                            <div id="passwordError" class="invalid-feedback"></div>
                         </div>
                     </div>
                 </form>
@@ -122,47 +139,76 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <script>
-    // Aquí puedes agregar el JavaScript para manejar el modal y el formulario
     document.addEventListener('DOMContentLoaded', function() {
+        // Validación en tiempo real de contraseñas
+        const password = document.getElementById('password');
+        const passwordConfirmation = document.getElementById('password_confirmation');
+        const passwordError = document.getElementById('passwordError');
+        
+        function validatePassword() {
+            if (password.value !== passwordConfirmation.value) {
+                passwordConfirmation.classList.add('password-mismatch');
+                passwordError.textContent = 'Las contraseñas no coinciden';
+                passwordError.style.display = 'block';
+                return false;
+            } else {
+                passwordConfirmation.classList.remove('password-mismatch');
+                passwordError.style.display = 'none';
+                return true;
+            }
+        }
+        
+        passwordConfirmation.addEventListener('input', validatePassword);
+        password.addEventListener('input', validatePassword);
+
         // Configurar el evento click del botón Guardar
         document.getElementById('btnGuardarEmpleado').addEventListener('click', function() {
-            // Aquí iría la lógica para guardar el empleado
-            console.log('Guardando empleado...');
+            if (!validatePassword()) {
+                mostrarAlerta('Las contraseñas no coinciden', 'danger');
+                return;
+            }
             
-            // Ejemplo: puedes usar fetch para enviar los datos al servidor
+            // Mostrar los valores que se enviarán (para depuración)
             const formData = new FormData(document.getElementById('formEmpleado'));
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
             
-            fetch('/empleados', {
+            fetch('{{ route("empleados.agregar") }}', {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
             .then(data => {
                 if(data.success) {
-                    // Cerrar el modal y mostrar mensaje de éxito
-                    var modal = bootstrap.Modal.getInstance(document.getElementById('modalEmpleado'));
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalEmpleado'));
                     modal.hide();
-                    
-                    // Mostrar alerta de éxito
                     mostrarAlerta('Empleado agregado correctamente', 'success');
-                    
-                    // Recargar la tabla o agregar el nuevo empleado dinámicamente
-                    // ...
+                    // Recargar la tabla o limpiar el formulario
+                    document.getElementById('formEmpleado').reset();
                 } else {
-                    // Mostrar errores de validación
                     mostrarAlerta(data.message || 'Error al agregar empleado', 'danger');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                mostrarAlerta('Error al procesar la solicitud', 'danger');
+                if (error.errors) {
+                    let errorMessages = Object.values(error.errors).flat().join('<br>');
+                    mostrarAlerta(errorMessages, 'danger');
+                } else {
+                    mostrarAlerta(error.message || 'Error al procesar la solicitud', 'danger');
+                }
             });
         });
         
@@ -176,11 +222,13 @@
             `;
             alertContainer.appendChild(alert);
             
-            // Eliminar la alerta después de 5 segundos
             setTimeout(() => {
                 alert.remove();
             }, 5000);
         }
     });
 </script>
-@endpush
+
+@endsection
+
+

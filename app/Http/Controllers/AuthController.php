@@ -85,4 +85,53 @@ public function login(Request $request)
     public function verEmpleados(){
         return view('content.empleados');
     }
+
+        // Función para registrar un nuevo empleado
+ public function agregarEmpleado(Request $request)
+{
+    try {
+        // Validación de datos
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:50',
+            'apellido' => 'required|string|max:50',
+            'email' => 'required|email|unique:users,email',
+            'telefono' => 'nullable|string|digits:10|regex:/^[0-9]{10}$/',
+            'rol' => 'required|in:admin,empleado',
+            'password' => [
+                'required',
+                'confirmed',
+            ]
+        ]);
+
+        // Crear el usuario
+        $user = User::create([
+            'nombre' => $validated['nombre'],
+            'apellidos' => $validated['apellido'],
+            'email' => $validated['email'],
+            'telefono' => $validated['telefono'] ?? null,
+            'rol' => $validated['rol'],
+            'password' => Hash::make($validated['password']),
+            'activo' => 1
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Empleado registrado exitosamente',
+            'data' => $user
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error de validación',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al procesar la solicitud',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }

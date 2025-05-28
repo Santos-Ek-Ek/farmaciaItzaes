@@ -55,7 +55,7 @@ public function login(Request $request)
         'password' => 'required',
     ]);
 
-    // Primero, verificar si el usuario existe y está activo
+    // verificar si el usuario existe y está activo
     $user = User::where('email', $request->email)->where('activo', 1)->first();
 
     if ($user && Hash::check($request->password, $user->password)) {

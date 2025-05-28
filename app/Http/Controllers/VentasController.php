@@ -236,6 +236,8 @@ public function verpdfindividual(Request $request)
     $pagina = $request->input('pagina', 1);
     $porPaginaInventario = $request->input('porPaginaInventario', 10);
     $paginaInventario = $request->input('paginaInventario', 1);
+    $porPaginaReporte = $request->input('porPaginaReporte', 10);
+    $paginaReporte = $request->input('paginaReporte', 1);
 
     // Procesar Ventas Individuales
     $rutaVentas = public_path('Ventas_individual');
@@ -256,7 +258,7 @@ public function verpdfindividual(Request $request)
         $totalPaginasVentas = ceil($totalArchivosVentas / $porPagina);
     }
 
-    // Procesar Reportes de Ventas (Inventario)
+    // Procesar Reportes de Inventario
     $rutaInventario = public_path('Reporte_ventas');
     $archivosInventario = [];
     $totalArchivosInventario = 0;
@@ -275,17 +277,43 @@ public function verpdfindividual(Request $request)
         $totalPaginasInventario = ceil($totalArchivosInventario / $porPaginaInventario);
     }
 
+    // Procesar Reportes Generales
+    $rutaReportes = public_path('Reportes');
+    $archivosReportes = [];
+    $totalArchivosReportes = 0;
+    $totalPaginasReportes = 1;
+
+    if (file_exists($rutaReportes)) {
+        $todosArchivosReportes = array_diff(scandir($rutaReportes), ['.', '..']);
+        usort($todosArchivosReportes, function($a, $b) use ($rutaReportes) {
+            return filemtime($rutaReportes.'/'.$b) - filemtime($rutaReportes.'/'.$a);
+        });
+
+        $offsetReporte = ($paginaReporte - 1) * $porPaginaReporte;
+        $archivosReportes = array_slice($todosArchivosReportes, $offsetReporte, $porPaginaReporte);
+        
+        $totalArchivosReportes = count($todosArchivosReportes);
+        $totalPaginasReportes = ceil($totalArchivosReportes / $porPaginaReporte);
+    }
+
     return view('content.historial', [
         'archivos' => $archivosVentas,
         'totalArchivos' => $totalArchivosVentas,
         'paginaActual' => $pagina,
         'porPagina' => $porPagina,
         'totalPaginas' => $totalPaginasVentas,
+        
         'archivosInventario' => $archivosInventario,
         'totalArchivosInventario' => $totalArchivosInventario,
         'paginaActualInventario' => $paginaInventario,
         'porPaginaInventario' => $porPaginaInventario,
-        'totalPaginasInventario' => $totalPaginasInventario
+        'totalPaginasInventario' => $totalPaginasInventario,
+        
+        'archivosReportes' => $archivosReportes,
+        'totalArchivosReportes' => $totalArchivosReportes,
+        'paginaActualReporte' => $paginaReporte,
+        'porPaginaReporte' => $porPaginaReporte,
+        'totalPaginasReportes' => $totalPaginasReportes
     ]);
 }
 
@@ -294,17 +322,33 @@ public function eliminarReporte(Request $request)
     $archivo = $request->input('archivo');
     $tipo = $request->input('tipo', 'ventas'); 
     
-    $ruta = $tipo === 'inventario' 
-        ? public_path('Reporte_ventas/'.$archivo)
-        : public_path('Ventas_individual/'.$archivo);
+    // Definir la ruta según el tipo de reporte
+    if ($tipo === 'inventario') {
+        $ruta = public_path('Reporte_ventas/'.$archivo);
+    } elseif ($tipo === 'ventas') {
+        $ruta = public_path('Ventas_individual/'.$archivo);
+    } else {
+        $ruta = public_path('Reportes/'.$archivo);
+    }
     
+    // Verificar y eliminar el archivo
     if (file_exists($ruta)) {
-        if (unlink($ruta)) {
-            return response()->json(['success' => true]);
+        try {
+            if (unlink($ruta)) {
+                return response()->json(['success' => true]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al eliminar el archivo: '.$e->getMessage()
+            ]);
         }
     }
     
-    return response()->json(['success' => false, 'message' => 'El archivo no existe o no se pudo eliminar']);
+    return response()->json([
+        'success' => false, 
+        'message' => 'El archivo no existe o no se pudo eliminar'
+    ]);
 }
 
 public function obtenerTodosReportes()
@@ -327,7 +371,7 @@ public function obtenerTodosReportes()
         ];
     }
 
-    // Obtener archivos de Reportes de Ventas (Inventario)
+    // Obtener archivos de Reportes de Inventario
     $directorioInventario = public_path('Reporte_ventas');
     $archivosInventario = glob($directorioInventario . '/*.pdf');
     
@@ -345,8 +389,25 @@ public function obtenerTodosReportes()
         ];
     }
 
+    // Obtener archivos de Reportes Generales
+    $directorioReportes = public_path('Reportes');
+    $archivosReportes = glob($directorioReportes . '/*.pdf');
     
-    $resultados = array_merge($resultadosVentas, $resultadosInventario);
+    $resultadosReportes = [];
+    foreach ($archivosReportes as $archivo) {
+        $nombreArchivo = basename($archivo);
+        $timestamp = filemtime($archivo);
+        $fechaModificacion = date("d/m/Y H:i", $timestamp);
+        
+        $resultadosReportes[] = [
+            'archivo' => $nombreArchivo,
+            'fecha' => $fechaModificacion,
+            'timestamp' => $timestamp,
+            'tipo' => 'reporte'
+        ];
+    }
+    
+    $resultados = array_merge($resultadosVentas, $resultadosInventario, $resultadosReportes);
     usort($resultados, function($a, $b) {
         return $b['timestamp'] - $a['timestamp'];
     });

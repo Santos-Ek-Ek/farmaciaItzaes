@@ -151,14 +151,99 @@
 </div>
             </div>
         </div>
-        
-        <!-- Pestaña de Reportes -->
-        <div class="tab-pane fade" id="reportes" role="tabpanel" aria-labelledby="reportes-tab">
-            <div class="p-4">
-                <h4>Reporte de Ventas</h4>
-                <p>Aquí iría el contenido del reporte de ventas...</p>
+
+<!-- Pestaña de Reportes -->
+<div class="tab-pane fade" id="reportes" role="tabpanel" aria-labelledby="reportes-tab">
+    <div class="p-4">
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4">
+            <div class="position-relative form-control-sm w-100 w-sm-auto">
+                <input type="text" id="buscarReporte" class="form-control form-control-sm w-100 w-sm-auto" placeholder="Buscar Reporte..." aria-label="Buscar Reporte"/>
+            </div>
+            <select class="form-select form-select-sm w-auto" id="itemsPorPaginaReporte" aria-label="Rows per page">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle text-secondary-subtle">
+                <thead class="bg-light border border-secondary-subtle rounded-2">
+                    <tr>
+                        <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 25%;">
+                            Nombre del Archivo
+                        </th>
+                        <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 15%;">
+                            Fecha de Modificación
+                        </th>
+                        <th class="text-uppercase fw-semibold text-center" style="font-size: 0.625rem; width: 20%;">
+                            Acciones
+                        </th>                  
+                    </tr>
+                </thead>
+                <tbody class="border border-secondary-subtle rounded-2 bg-white" id="tablaReportesGenerales">
+                    @forelse($archivosReportes as $archivo)
+                        @php
+                            $rutaCompleta = public_path('Reportes/'.$archivo);
+                            $fechaModificacion = date("d/m/Y H:i", filemtime($rutaCompleta));
+                        @endphp
+                        <tr>
+                            <td class="text-center">{{ $archivo }}</td>
+                            <td class="text-center">{{ $fechaModificacion }}</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ asset('Reportes/'.$archivo) }}" target="_blank" class="btn btn-sm btn-primary acciones-btn">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                    <button class="btn btn-sm btn-danger acciones-btn btn-eliminar-reporte" data-archivo="{{ $archivo }}" data-tipo="reporte">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="text-center py-4">No se encontraron archivos PDF</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small" id="infoPaginacionReporte">
+                    Mostrando {{ ($paginaActualReporte - 1) * $porPaginaReporte + 1 }} a 
+                    {{ min($paginaActualReporte * $porPaginaReporte, $totalArchivosReportes) }} de 
+                    {{ $totalArchivosReportes }} reportes
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0" id="paginacionReporte">
+                        @if($totalPaginasReportes > 1)
+                            <!-- Botón Anterior -->
+                            <li class="page-item {{ $paginaActualReporte == 1 ? 'disabled' : '' }}">
+                                <a class="page-link" href="?paginaReporte={{ $paginaActualReporte - 1 }}&porPaginaReporte={{ $porPaginaReporte }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            
+                            <!-- Páginas numeradas -->
+                            @for($i = 1; $i <= $totalPaginasReportes; $i++)
+                                <li class="page-item {{ $paginaActualReporte == $i ? 'active' : '' }}">
+                                    <a class="page-link" href="?paginaReporte={{ $i }}&porPaginaReporte={{ $porPaginaReporte }}">{{ $i }}</a>
+                                </li>
+                            @endfor
+                            
+                            <!-- Botón Siguiente -->
+                            <li class="page-item {{ $paginaActualReporte == $totalPaginasReportes ? 'disabled' : '' }}">
+                                <a class="page-link" href="?paginaReporte={{ $paginaActualReporte + 1 }}&porPaginaReporte={{ $porPaginaReporte }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </nav>
             </div>
         </div>
+    </div>
+</div>
         
 
 <!-- Pestaña de Inventario -->
@@ -282,7 +367,8 @@ $(document).ready(function() {
     let todosLosArchivos = [];
     let archivosFiltrados = {
         ventas: [],
-        inventario: []
+        inventario: [],
+        reporte: []
     };
     let configPaginacion = {
         ventas: {
@@ -291,6 +377,11 @@ $(document).ready(function() {
             totalPaginas: 1
         },
         inventario: {
+            paginaActual: 1,
+            porPagina: 10,
+            totalPaginas: 1
+        },
+        reporte: {
             paginaActual: 1,
             porPagina: 10,
             totalPaginas: 1
@@ -305,10 +396,12 @@ $(document).ready(function() {
             // Inicializar archivos filtrados con todos los archivos correspondientes
             archivosFiltrados.ventas = todosLosArchivos.filter(item => item.tipo === 'ventas');
             archivosFiltrados.inventario = todosLosArchivos.filter(item => item.tipo === 'inventario');
+            archivosFiltrados.reporte = todosLosArchivos.filter(item => item.tipo === 'reporte');
             
             // Calcular paginación inicial
             calcularPaginacion('ventas');
             calcularPaginacion('inventario');
+            calcularPaginacion('reporte');
             
             if (callback) callback();
         }).fail(function() {
@@ -328,6 +421,7 @@ $(document).ready(function() {
     cargarTodosLosArchivos(function() {
         actualizarTabla('ventas');
         actualizarTabla('inventario');
+        actualizarTabla('reporte');
     });
 
     // Búsqueda en tiempo real para Ventas
@@ -340,6 +434,12 @@ $(document).ready(function() {
     $('#buscarInventario').on('input', function() {
         const valor = $(this).val().toLowerCase();
         buscarArchivos(valor, 'inventario');
+    });
+
+    // Búsqueda en tiempo real para Reportes
+    $('#buscarReporte').on('input', function() {
+        const valor = $(this).val().toLowerCase();
+        buscarArchivos(valor, 'reporte');
     });
 
     // Cambiar cantidad de items por página para Ventas
@@ -356,6 +456,14 @@ $(document).ready(function() {
         configPaginacion.inventario.paginaActual = 1;
         calcularPaginacion('inventario');
         actualizarTabla('inventario');
+    });
+
+    // Cambiar cantidad de items por página para Reportes
+    $('#itemsPorPaginaReporte').change(function() {
+        configPaginacion.reporte.porPagina = parseInt($(this).val());
+        configPaginacion.reporte.paginaActual = 1;
+        calcularPaginacion('reporte');
+        actualizarTabla('reporte');
     });
 
     // Función para buscar archivos
@@ -382,9 +490,17 @@ $(document).ready(function() {
     function actualizarTabla(tipo) {
         const config = configPaginacion[tipo];
         const archivosTipo = archivosFiltrados[tipo];
-        const selectorTabla = tipo === 'ventas' ? '#tablaReportes' : '#tablaInventario';
-        const selectorInfo = tipo === 'ventas' ? '#infoPaginacion' : '#infoPaginacionInventario';
-        const selectorPaginacion = tipo === 'ventas' ? '#paginacion' : '#paginacionInventario';
+        
+        // Determinar los selectores según el tipo
+        const selectorTabla = tipo === 'ventas' ? '#tablaReportes' : 
+                            tipo === 'inventario' ? '#tablaInventario' : 
+                            '#tablaReportesGenerales';
+        const selectorInfo = tipo === 'ventas' ? '#infoPaginacion' : 
+                           tipo === 'inventario' ? '#infoPaginacionInventario' : 
+                           '#infoPaginacionReporte';
+        const selectorPaginacion = tipo === 'ventas' ? '#paginacion' : 
+                                 tipo === 'inventario' ? '#paginacionInventario' : 
+                                 '#paginacionReporte';
         
         // Calcular archivos a mostrar
         const inicio = (config.paginaActual - 1) * config.porPagina;
@@ -401,7 +517,16 @@ $(document).ready(function() {
             );
         } else {
             archivosAMostrar.forEach(item => {
-                const rutaBase = item.tipo === 'inventario' ? 'Reporte_ventas' : 'Ventas_individual';
+                // Determinar la ruta base según el tipo de archivo
+                let rutaBase;
+                if (item.tipo === 'inventario') {
+                    rutaBase = 'Reporte_ventas';
+                } else if (item.tipo === 'ventas') {
+                    rutaBase = 'Ventas_individual';
+                } else {
+                    rutaBase = 'Reportes';
+                }
+                
                 $tablaBody.append(`
                     <tr>
                         <td class="text-center">${item.archivo}</td>
@@ -466,7 +591,9 @@ $(document).ready(function() {
     $(document).on('click', '.page-link', function(e) {
         e.preventDefault();
         const pagina = parseInt($(this).data('pagina'));
-        const tipo = $(this).closest('.tab-pane').is('#ventas') ? 'ventas' : 'inventario';
+        const tipo = $(this).closest('.tab-pane').is('#ventas') ? 'ventas' : 
+                    $(this).closest('.tab-pane').is('#inventario') ? 'inventario' : 
+                    'reporte';
         
         if (!isNaN(pagina)) {
             configPaginacion[tipo].paginaActual = pagina;
@@ -474,8 +601,8 @@ $(document).ready(function() {
         }
     });
 
-    // Manejar el botón de eliminar
-    $(document).on('click', '.btn-eliminar', function() {
+    // Manejar el botón de eliminar (para todos los tipos)
+    $(document).on('click', '.btn-eliminar, .btn-eliminar-inventario, .btn-eliminar-reporte', function() {
         archivoAEliminar = $(this).data('archivo');
         tipoAEliminar = $(this).data('tipo');
         $('#confirmarEliminarModal').modal('show');
@@ -496,7 +623,14 @@ $(document).ready(function() {
                     mostrarAlerta('success', 'Reporte eliminado correctamente');
                     // Volver a cargar los datos después de eliminar
                     cargarTodosLosArchivos(function() {
-                        buscarArchivos($('#buscar' + (tipoAEliminar === 'ventas' ? 'Venta' : 'Inventario')).val(), tipoAEliminar);
+                        // Actualizar la búsqueda según el tipo eliminado
+                        if (tipoAEliminar === 'ventas') {
+                            buscarArchivos($('#buscarVenta').val(), 'ventas');
+                        } else if (tipoAEliminar === 'inventario') {
+                            buscarArchivos($('#buscarInventario').val(), 'inventario');
+                        } else {
+                            buscarArchivos($('#buscarReporte').val(), 'reporte');
+                        }
                     });
                 } else {
                     mostrarAlerta('danger', 'Error al eliminar el reporte: ' + response.message);
@@ -524,6 +658,11 @@ $(document).ready(function() {
             $('.alert').alert('close');
         }, 5000);
     }
+
+    // Manejar cambio de pestañas para mantener el estado
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+        const target = $(e.target).attr('href');
+    });
 });
 </script>
 @endsection

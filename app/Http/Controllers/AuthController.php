@@ -83,7 +83,8 @@ public function login(Request $request)
     }
 
     public function verEmpleados(){
-        return view('content.empleados');
+        $usuarios = User::where('activo', 1)->get();
+        return view('content.empleados',compact('usuarios'));
     }
 
         // Función para registrar un nuevo empleado
@@ -134,4 +135,61 @@ public function login(Request $request)
         ], 500);
     }
 }
+
+public function editarEmpleado($id)
+{
+    $empleado = User::findOrFail($id);
+    return response()->json([
+        'success' => true,
+        'empleado' => $empleado
+    ]);
+}
+
+public function actualizarEmpleado(Request $request, $id)
+{
+    $empleado = User::findOrFail($id);
+    
+    $validated = $request->validate([
+        'nombre' => 'required|string|max:50',
+        'apellidos' => 'required|string|max:50',
+        'email' => 'required|email|unique:users,email,'.$id,
+        'telefono' => 'nullable|string|digits:10',
+        'rol' => 'required|in:Administrador,Empleado',
+        'password' => 'nullable|min:8|confirmed'
+    ]);
+
+    // Solo actualizar la contraseña si se proporcionó
+    $data = $request->only(['nombre', 'apellidos', 'email', 'telefono', 'rol']);
+    if ($request->filled('password')) {
+        $data['password'] = Hash::make($request->password);
+    }
+
+    $empleado->update($data);
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Empleado actualizado correctamente'
+    ]);
+}
+
+public function eliminarEmpleado($id)
+{
+    try {
+        $empleado = User::findOrFail($id);
+        $empleado->activo = 0;
+        $empleado->save();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Empleado desactivado correctamente'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al desactivar empleado',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }

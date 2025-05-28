@@ -354,4 +354,63 @@ public function obtenerTodosReportes()
     return response()->json($resultados);
 }
 
+public function generarReporteVenta(Request $request)
+{
+    $request->validate([
+        'fecha_inicio' => 'required|date',
+        'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        'tipo' => 'required|in:pdf,excel'
+    ]);
+
+    try {
+        $fechaInicio = $request->fecha_inicio;
+        $fechaFin = $request->fecha_fin;
+
+        $ventas = DB::select("
+            SELECT 
+                p.total, 
+                v.fecha_venta, 
+                v.numero_venta,
+                v.cantidad, 
+                v.subtotal, 
+                pr.nombre
+            FROM pagos p
+            INNER JOIN ventas v ON p.numero_venta = v.numero_venta
+            INNER JOIN productos pr ON v.producto_id = pr.id
+            WHERE v.fecha_venta BETWEEN ? AND ?
+            ORDER BY numero_venta
+        ", [$fechaInicio, $fechaFin]);
+
+        if (empty($ventas)) {
+            throw new \Exception("No hay datos para el rango de fechas seleccionado");
+        }
+
+
+$totalGeneralResult = DB::selectOne("
+    SELECT SUM(subtotal) as total_general 
+    FROM ventas 
+    WHERE fecha_venta BETWEEN ? AND ?  
+", [$fechaInicio, $fechaFin]);
+
+$totalGeneral = $totalGeneralResult->total_general ?? 0;
+
+
+        if ($request->tipo === 'pdf') {
+            $pdf = PDF::loadView('reportes.ventas_pdf', [
+                'ventas' => $ventas,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'totalGeneral' => $totalGeneral
+            ]);
+            
+            return $pdf->download('reporte_ventas_'.now()->format('Ymd').'.pdf');
+        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }

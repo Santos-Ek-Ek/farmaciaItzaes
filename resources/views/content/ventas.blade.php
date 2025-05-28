@@ -31,11 +31,10 @@
     <option value="25">25</option>
     <option value="50">50</option>
 </select>
-     <button type="button" class="btn btn-export btn-sm d-flex align-items-center gap-1">
-      <i class="fas fa-upload"></i>
-      Exportar
-      <i class="fas fa-chevron-down" style="font-size: 8px;"></i>
-     </button>
+<button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" id="btnAbrirModalReporte">
+    <i class="fas fa-file-pdf"></i>
+    Generar Reporte
+</button>
      <button type="button" class="btn btn-success btn-sm ms-auto ms-sm-0">Cobrar</button>
     </div>
     <div class="table-responsive">
@@ -146,11 +145,140 @@
 </div>
 
 
-
+<!-- Modal para Generar Reporte -->
+<div class="modal fade" id="modalGenerarReporte" tabindex="-1" aria-labelledby="modalGenerarReporteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalGenerarReporteLabel">Generar Reporte de Ventas</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formGenerarReporte">
+                    <div class="mb-3">
+                        <label for="fechaInicio" class="form-label">Fecha de Inicio</label>
+                        <input type="date" class="form-control" id="fechaInicio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaFin" class="form-label">Fecha de Fin</label>
+                        <input type="date" class="form-control" id="fechaFin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoReporte" class="form-label">Tipo de Reporte</label>
+                        <select class="form-select" id="tipoReporte" required>
+                            <option value="pdf" selected>PDF</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGenerarReporte">Generar Reporte</button>
+            </div>
+        </div>
+    </div>
+</div>
 
   </div>
 
 
+<script>
+    
+$(document).ready(function() {
+    // Abrir modal al hacer clic en el botón Generar Reporte
+    $('#btnAbrirModalReporte').click(function() {
+        $('#modalGenerarReporte').modal('show');
+    });
+
+    // Validar que fecha fin no sea menor que fecha inicio
+    $('#fechaInicio, #fechaFin').change(function() {
+        const fechaInicio = new Date($('#fechaInicio').val());
+        const fechaFin = new Date($('#fechaFin').val());
+        
+        if (fechaFin < fechaInicio) {
+            alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+            $('#fechaFin').val($('#fechaInicio').val());
+        }
+    });
+
+    // Generar reporte al confirmar
+    $('#btnGenerarReporte').click(function() {
+        const form = $('#formGenerarReporte');
+        if (form[0].checkValidity()) {
+            const fechaInicio = $('#fechaInicio').val();
+            const fechaFin = $('#fechaFin').val();
+            const tipoReporte = $('#tipoReporte').val();
+            
+
+            generarReporte(fechaInicio, fechaFin, tipoReporte);
+            
+            $('#modalGenerarReporte').modal('hide');
+        } else {
+            form[0].reportValidity();
+        }
+    });
+
+function generarReporte(fechaInicio, fechaFin, tipo) {
+    if (!fechaInicio || !fechaFin) {
+        mostrarAlerta('warning', 'Por favor seleccione ambas fechas');
+        return;
+    }
+    
+    mostrarAlerta('info', 'Generando reporte, por favor espere...');
+    $('#btnGenerarReporte').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...');
+    
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("generar.reporte.venta") }}';
+    form.target = '_blank';
+    
+
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = '_token';
+    csrf.value = '{{ csrf_token() }}';
+    form.appendChild(csrf);
+    
+
+    const addField = (name, value) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+    };
+    
+    addField('fecha_inicio', fechaInicio);
+    addField('fecha_fin', fechaFin);
+    addField('tipo', tipo);
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+    
+
+    setTimeout(() => {
+        $('#btnGenerarReporte').prop('disabled', false).text('Generar Reporte');
+    }, 3000);
+}
+
+    function mostrarAlerta(tipo, mensaje) {
+        $('#alertContainer').empty();
+        const alerta = `
+            <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        $('#alertContainer').append(alerta);
+        setTimeout(() => {
+            $('.alert').alert('close');
+        }, 5000);
+    }
+});
+
+</script>
 <script src="js/ventas.js"></script>
 
 @endsection

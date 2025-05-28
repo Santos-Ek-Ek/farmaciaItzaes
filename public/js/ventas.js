@@ -588,18 +588,6 @@ async function procesarCobro(total, metodo) {
     }
 }
 
-// Función para mostrar PDF en nueva pestaña
-function mostrarPDFEnNuevaPestaña(base64Data) {
-    const blob = base64ToBlob(base64Data, 'application/pdf');
-    const url = URL.createObjectURL(blob);
-    
-    // Abrir en nueva pestaña
-    window.open(url, '_blank');
-    
-    // Liberar memoria después de un tiempo
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-}
-
 // Función para convertir base64 a Blob (se mantiene igual)
 function base64ToBlob(base64, contentType = '', sliceSize = 512) {
     const byteCharacters = atob(base64);
@@ -648,9 +636,14 @@ function limpiarVenta() {
 
 
 
+
+
     // Inicialización
     await cargarProductos();
     await reconstruirTablaDesdeStorage();
     actualizarPaginacion();
 
 });
+
+
+

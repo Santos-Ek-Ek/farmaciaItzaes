@@ -22,6 +22,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::post('/generar-reporte', [VentasController::class, 'generarReporteVenta'])->name('generar.reporte.venta');
 
 Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
 

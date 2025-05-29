@@ -89,12 +89,14 @@
                     @endforeach
                 </tbody>
             </table>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-
-                <nav aria-label="Page navigation">
-
-                </nav>
-            </div>
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div id="infoPaginacion" class="text-muted small"></div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm" id="paginacion">
+            <!-- Los botones de paginación se generarán aquí -->
+        </ul>
+    </nav>
+</div>
         </div>
     </div>
 </div>
@@ -238,6 +240,242 @@
     </div>
 </div>
 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    let currentPage = 1;
+    let itemsPerPage = parseInt(document.getElementById('itemsPorPagina').value);
+    let totalItems = 0;
+    let allEmpleados = [];
+
+    // Cargar datos iniciales
+    fetchEmpleados();
+
+    // Evento para cambiar items por página
+    document.getElementById('itemsPorPagina').addEventListener('change', function() {
+        itemsPerPage = parseInt(this.value);
+        currentPage = 1;
+        renderTable();
+        renderPagination();
+    });
+
+    // Función para cargar empleados
+    function fetchEmpleados() {
+        fetch('/empleados/json')
+            .then(response => response.json())
+            .then(data => {
+                allEmpleados = data;
+                totalItems = data.length;
+                renderTable();
+                renderPagination();
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Función para renderizar la tabla con los datos paginados
+    function renderTable() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedItems = allEmpleados.slice(startIndex, endIndex);
+        
+        const tablaEmpleados = document.getElementById('tablaEmpleados');
+        tablaEmpleados.innerHTML = '';
+        
+        paginatedItems.forEach(empleado => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="text-center">${empleado.nombre} ${empleado.apellidos}</td>
+                <td class="text-center">${empleado.email}</td>
+                <td class="text-center">${empleado.telefono}</td>
+                <td class="text-center">
+                    ${empleado.rol === 'Administrador' 
+                        ? '<span class="badge bg-primary">Administrador</span>' 
+                        : '<span class="badge bg-secondary">Empleado</span>'}
+                </td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-primary acciones-btn" 
+                                onclick="editarEmpleado(${empleado.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger acciones-btn" 
+                                onclick="confirmarEliminar(${empleado.id}, '${empleado.nombre} ${empleado.apellidos}')">
+                            <i class="fas fa-user-slash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tablaEmpleados.appendChild(row);
+        });
+        
+        // Actualizar información de paginación
+        document.getElementById('infoPaginacion').textContent = 
+            `Mostrando ${startIndex + 1} a ${Math.min(endIndex, totalItems)} de ${totalItems} empleados`;
+    }
+
+    // Función para renderizar los controles de paginación
+    function renderPagination() {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const pagination = document.getElementById('paginacion');
+        pagination.innerHTML = '';
+        
+        // Botón Anterior
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous">&laquo;</a>`;
+        prevLi.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                renderPagination();
+            }
+        });
+        pagination.appendChild(prevLi);
+        
+        // Números de página
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        if (startPage > 1) {
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item';
+            firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
+            firstLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+            pagination.appendChild(firstLi);
+            
+            if (startPage > 2) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                pagination.appendChild(ellipsisLi);
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            pageLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = i;
+                renderTable();
+                renderPagination();
+            });
+            pagination.appendChild(pageLi);
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                pagination.appendChild(ellipsisLi);
+            }
+            
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item';
+            lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+            lastLi.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = totalPages;
+                renderTable();
+                renderPagination();
+            });
+            pagination.appendChild(lastLi);
+        }
+        
+        // Botón Siguiente
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next">&raquo;</a>`;
+        nextLi.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+                renderPagination();
+            }
+        });
+        pagination.appendChild(nextLi);
+    }
+    
+    // Implementación de búsqueda
+    document.getElementById('buscarEmpleado').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length > 0) {
+            // Si hay término de búsqueda, filtrar los empleados
+            const filtered = allEmpleados.filter(empleado => 
+                empleado.nombre.toLowerCase().includes(searchTerm) || 
+                empleado.apellidos.toLowerCase().includes(searchTerm) ||
+                empleado.email.toLowerCase().includes(searchTerm) ||
+                empleado.telefono.includes(searchTerm) ||
+                empleado.rol.toLowerCase().includes(searchTerm)
+            );
+            
+            // Mostrar resultados en el dropdown
+            const resultados = document.getElementById('resultadosBusqueda');
+            resultados.innerHTML = '';
+            
+            if (filtered.length > 0) {
+                filtered.slice(0, 5).forEach(empleado => {
+                    const item = document.createElement('a');
+                    item.className = 'dropdown-item';
+                    item.href = '#';
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <span>${empleado.nombre} ${empleado.apellidos}</span>
+                            <span class="text-muted">${empleado.rol}</span>
+                        </div>
+                        <small class="text-muted d-block">${empleado.email}</small>
+                    `;
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        allEmpleados = [empleado];
+                        currentPage = 1;
+                        renderTable();
+                        renderPagination();
+                        this.value = '';
+                        resultados.style.display = 'none';
+                    });
+                    resultados.appendChild(item);
+                });
+                
+                resultados.style.display = 'block';
+            } else {
+                const item = document.createElement('a');
+                item.className = 'dropdown-item disabled';
+                item.textContent = 'No se encontraron resultados';
+                resultados.appendChild(item);
+                resultados.style.display = 'block';
+            }
+        } else {
+            // Si no hay término de búsqueda, restaurar todos los empleados
+            document.getElementById('resultadosBusqueda').style.display = 'none';
+            fetchEmpleados();
+        }
+    });
+    
+    // Ocultar resultados de búsqueda al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#buscarEmpleado') && !e.target.closest('#resultadosBusqueda')) {
+            document.getElementById('resultadosBusqueda').style.display = 'none';
+        }
+    });
+});
+</script>
+
 <script>
     function mostrarAlerta(mensaje, tipo) {
         const alertContainer = document.getElementById('alertContainer');
@@ -254,7 +492,6 @@
         }, 5000);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
         // Validación en tiempo real de contraseñas
         const password = document.getElementById('password');
         const passwordConfirmation = document.getElementById('password_confirmation');
@@ -276,51 +513,68 @@
         passwordConfirmation.addEventListener('input', validatePassword);
         password.addEventListener('input', validatePassword);
 
-        // Configurar el evento click del botón Guardar
-        document.getElementById('btnGuardarEmpleado').addEventListener('click', function() {
-            if (!validatePassword()) {
-                mostrarAlerta('Las contraseñas no coinciden', 'danger');
-                return;
-            }
-            
-            const formData = new FormData(document.getElementById('formEmpleado'));
-            
-            fetch('{{ route("empleados.agregar") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if(data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalEmpleado'));
-                    modal.hide();
-                    mostrarAlerta('Empleado agregado correctamente', 'success');
-                    document.getElementById('formEmpleado').reset();
-                } else {
-                    mostrarAlerta(data.message || 'Error al agregar empleado', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                if (error.errors) {
-                    let errorMessages = Object.values(error.errors).flat().join('<br>');
-                    mostrarAlerta(errorMessages, 'danger');
-                } else {
-                    mostrarAlerta(error.message || 'Error al procesar la solicitud', 'danger');
-                }
+document.getElementById('btnGuardarEmpleado').addEventListener('click', function() {
+    if (!validatePassword()) {
+        mostrarAlerta('Las contraseñas no coinciden', 'danger');
+        return;
+    }
+    
+    const formData = new FormData(document.getElementById('formEmpleado'));
+    
+    // Mostrar los datos que se enviarán
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ": " + value);
+    }
+    
+    fetch('{{ route("empleados.agregar") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        // Primero verificar el estado de la respuesta
+        if (!response.ok) {
+            // Si la respuesta no es OK, intentar parsear el error
+            return response.json().then(err => {
+                // Lanzar el error para que sea capturado
+                throw err;
+            }).catch(() => {
+                // Si no se puede parsear como JSON, lanzar un error genérico
+                throw new Error('Error en la solicitud: ' + response.status);
             });
-        });
+        }
+        // Si la respuesta es OK, parsear como JSON
+        return response.json();
+    })
+    .then(data => {
+        if(data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalEmpleado'));
+            modal.hide();
+            mostrarAlerta('Empleado agregado correctamente', 'success');
+            document.getElementById('formEmpleado').reset();
+            // Recargar la página o actualizar la tabla
+            location.reload();
+        } else {
+            // Mostrar mensaje de error 
+            mostrarAlerta(data.message || 'Error al agregar empleado', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error completo:', error);
+        if (error.errors) {
+            // Error de validación 
+            let errorMessages = Object.values(error.errors).flat().join('<br>');
+            mostrarAlerta(errorMessages, 'danger');
+        } else {
+           
+            mostrarAlerta(error.message || 'Error al procesar la solicitud', 'danger');
+        }
     });
+});
 
     // Función para editar empleado
     function editarEmpleado(id) {
@@ -382,7 +636,7 @@ document.getElementById('btnActualizarEmpleado').addEventListener('click', funct
     const form = document.getElementById('formEditarEmpleado');
     const formData = new FormData(form);
     
-    // Si no se está cambiando la contraseña, eliminar los campos del FormData
+    // Si no se está cambiando la contraseña, eliminar los campos 
     if (!document.getElementById('edit_cambiar_password').checked) {
         formData.delete('password');
         formData.delete('password_confirmation');
@@ -529,56 +783,6 @@ function eliminarEmpleado(id, nombre) {
         
         passwordConfirmation.addEventListener('input', validatePassword);
         password.addEventListener('input', validatePassword);
-
-        // Configurar el evento click del botón Guardar
-        document.getElementById('btnGuardarEmpleado').addEventListener('click', function() {
-            if (!validatePassword()) {
-                mostrarAlerta('Las contraseñas no coinciden', 'danger');
-                return;
-            }
-            
-            // Mostrar los valores que se enviarán 
-            const formData = new FormData(document.getElementById('formEmpleado'));
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-            
-            fetch('{{ route("empleados.agregar") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if(data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalEmpleado'));
-                    modal.hide();
-                    mostrarAlerta('Empleado agregado correctamente', 'success');
-                    // Recargar la tabla o limpiar el formulario
-                    document.getElementById('formEmpleado').reset();
-                } else {
-                    mostrarAlerta(data.message || 'Error al agregar empleado', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                if (error.errors) {
-                    let errorMessages = Object.values(error.errors).flat().join('<br>');
-                    mostrarAlerta(errorMessages, 'danger');
-                } else {
-                    mostrarAlerta(error.message || 'Error al procesar la solicitud', 'danger');
-                }
-            });
-        });
         
         function mostrarAlerta(mensaje, tipo) {
             const alertContainer = document.getElementById('alertContainer');

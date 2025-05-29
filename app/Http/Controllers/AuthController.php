@@ -97,10 +97,11 @@ public function login(Request $request)
             'apellido' => 'required|string|max:50',
             'email' => 'required|email|unique:users,email',
             'telefono' => 'nullable|string|digits:10|regex:/^[0-9]{10}$/',
-            'rol' => 'required|in:admin,empleado',
+            'rol' => 'required|in:Administrador,Empleado',
             'password' => [
                 'required',
                 'confirmed',
+                'min:8'
             ]
         ]);
 
@@ -119,19 +120,18 @@ public function login(Request $request)
             'success' => true,
             'message' => 'Empleado registrado exitosamente',
             'data' => $user
-        ], 201);
+        ]);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Error de validación',
+            'message' => 'Error en los datos proporcionados',
             'errors' => $e->errors()
         ], 422);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Error al procesar la solicitud',
-            'error' => $e->getMessage()
+            'message' => 'Error al procesar la solicitud: ' . $e->getMessage()
         ], 500);
     }
 }
@@ -192,4 +192,9 @@ public function eliminarEmpleado($id)
     }
 }
 
+public function indexJson()
+{
+    $empleados = User::where('activo', 1)->get(); // Ajusta según tu modelo
+    return response()->json($empleados);
+}
 }

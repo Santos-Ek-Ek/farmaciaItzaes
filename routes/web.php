@@ -27,7 +27,7 @@ Route::post('/empleados-agregar', [AuthController::class, 'agregarEmpleado'])->n
 Route::get('/empleados/{id}/editar', [AuthController::class, 'editarEmpleado'])->name('empleados.editar');
 Route::put('/empleados/{id}', [AuthController::class, 'actualizarEmpleado'])->name('empleados.actualizar');
 Route::put('/empleados-eliminar/{id}', [AuthController::class, 'eliminarEmpleado'])->name('empleados.eliminar');
-
+Route::get('/empleados/json', [AuthController::class, 'indexJson'])->name('empleados.json');
 
 Route::post('/generar-reporte', [VentasController::class, 'generarReporteVenta'])->name('generar.reporte.venta');
 

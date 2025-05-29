@@ -175,6 +175,7 @@
        <i class="fas fa-home fa-fw"></i>
        <span class="nav-link-text">Inicio</span>
       </a>
+      @if(auth()->user()->rol !== 'Empleado')
       <a class="nav-link" href="productos">
        <i class="fas fa-pills"></i>
        <span class="nav-link-text">Productos</span>
@@ -183,10 +184,12 @@
        <i class="fas fa-th-list"></i>
        <span class="nav-link-text">Categorías</span>
       </a>
+      @endif
       <a class="nav-link" href="ventas">
        <i class="fas fa-shopping-cart"></i>
        <span class="nav-link-text">Ventas</span>
       </a>
+      @if(auth()->user()->rol !== 'Empleado')
       <a class="nav-link" href="historial">
        <i class="fas fa-history"></i>
        <span class="nav-link-text">Historial de Reportes</span>
@@ -195,6 +198,7 @@
        <i class="fas fa-users"></i>
        <span class="nav-link-text">Empleados</span>
       </a>
+      @endif
      </nav>
     </div>
     

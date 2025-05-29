@@ -31,10 +31,12 @@
     <option value="25">25</option>
     <option value="50">50</option>
 </select>
+@if(auth()->user()->rol !== 'Empleado')
 <button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1" id="btnAbrirModalReporte">
     <i class="fas fa-file-pdf"></i>
     Generar Reporte
 </button>
+@endif
      <button type="button" class="btn btn-success btn-sm ms-auto ms-sm-0">Cobrar</button>
     </div>
     <div class="table-responsive">

@@ -19,9 +19,10 @@ use App\Http\Controllers\VentasController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('login');
 });
 
+Route::middleware(['auth'])->group(function () {
 Route::get('empleados',[AuthController::class, 'verEmpleados'])->name('empleados');
 Route::post('/empleados-agregar', [AuthController::class, 'agregarEmpleado'])->name('empleados.agregar');
 Route::get('/empleados/{id}/editar', [AuthController::class, 'editarEmpleado'])->name('empleados.editar');
@@ -57,6 +58,7 @@ Route::post('categorias-agregar', [CategoriaController::class, 'store'])->name('
 Route::put('categorias-eliminar/{id}', [CategoriaController::class, 'destroy'])->name('categorias.destroy');
 Route::get('categorias/{id}/edit', [CategoriaController::class, 'edit'])->name('categorias.edit');
 Route::put('categorias/{id}', [CategoriaController::class, 'update'])->name('categorias.update');
+});
 
 Route::get('registro',[AuthController::class, 'verRegistro'])->name('registro');
 Route::get('login',[AuthController::class, 'verInicioSesion'])->name('login');

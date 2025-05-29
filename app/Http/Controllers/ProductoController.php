@@ -192,6 +192,7 @@ public function generarReporte(Request $request)
         ->when($request->busqueda, function($query, $busqueda) {
             return $query->where('nombre', 'like', "%{$busqueda}%");
         })
+        ->where('activo' , 1)
         ->orderBy('nombre')
         ->get();
 

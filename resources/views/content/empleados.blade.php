@@ -1,8 +1,9 @@
 @extends('layout.layout')
 @section('contenido')
-@section('titulo', 'Empleados')
+@section('titulo', 'Empleados / Administradores')
 
 <link rel="stylesheet" href="{{ asset('css/productos.css') }}">
+<meta name="logged-in-user-id" content="{{ auth()->id() }}">
 <style>
     #resultadosBusqueda {
         max-width: 100%;
@@ -276,40 +277,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para renderizar la tabla con los datos paginados
     function renderTable() {
-        const empleadosToShow = filteredEmpleados || allEmpleados;
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const paginatedItems = empleadosToShow.slice(startIndex, endIndex);
-        
-        const tablaEmpleados = document.getElementById('tablaEmpleados');
-        tablaEmpleados.innerHTML = '';
-        
-        paginatedItems.forEach(empleado => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="text-center">${empleado.nombre} ${empleado.apellidos}</td>
-                <td class="text-center">${empleado.email}</td>
-                <td class="text-center">${empleado.telefono}</td>
-                <td class="text-center">
-                    ${empleado.rol === 'Administrador' 
-                        ? '<span class="badge bg-primary">Administrador</span>' 
-                        : '<span class="badge bg-secondary">Empleado</span>'}
-                </td>
-                <td class="text-center">
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-primary acciones-btn" 
-                                onclick="editarEmpleado(${empleado.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger acciones-btn" 
+    const loggedInUserId = document.querySelector('meta[name="logged-in-user-id"]').content;
+    const empleadosToShow = filteredEmpleados || allEmpleados;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedItems = empleadosToShow.slice(startIndex, endIndex);
+    
+    const tablaEmpleados = document.getElementById('tablaEmpleados');
+    tablaEmpleados.innerHTML = '';
+    
+    paginatedItems.forEach(empleado => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="text-center">${empleado.nombre} ${empleado.apellidos}</td>
+            <td class="text-center">${empleado.email}</td>
+            <td class="text-center">${empleado.telefono}</td>
+            <td class="text-center">
+                ${empleado.rol === 'Administrador' 
+                    ? '<span class="badge bg-primary">Administrador</span>' 
+                    : '<span class="badge bg-secondary">Empleado</span>'}
+            </td>
+            <td class="text-center">
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-sm btn-outline-primary acciones-btn" 
+                            onclick="editarEmpleado(${empleado.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${empleado.id != loggedInUserId ? 
+                        `<button class="btn btn-sm btn-outline-danger acciones-btn" 
                                 onclick="confirmarEliminar(${empleado.id}, '${empleado.nombre} ${empleado.apellidos}')">
                             <i class="fas fa-user-slash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            tablaEmpleados.appendChild(row);
-        });
+                        </button>` : ''}
+                </div>
+            </td>
+        `;
+        tablaEmpleados.appendChild(row);
+    });
         
         // Actualizar información de paginación
         const totalItemsToShow = empleadosToShow.length;

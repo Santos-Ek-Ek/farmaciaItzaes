@@ -242,11 +242,12 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     let itemsPerPage = parseInt(document.getElementById('itemsPorPagina').value);
     let totalItems = 0;
     let allEmpleados = [];
+    let filteredEmpleados = null; 
 
     // Cargar datos iniciales
     fetchEmpleados();
@@ -266,6 +267,7 @@
             .then(data => {
                 allEmpleados = data;
                 totalItems = data.length;
+                filteredEmpleados = null; 
                 renderTable();
                 renderPagination();
             })
@@ -274,9 +276,10 @@
 
     // Función para renderizar la tabla con los datos paginados
     function renderTable() {
+        const empleadosToShow = filteredEmpleados || allEmpleados;
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const paginatedItems = allEmpleados.slice(startIndex, endIndex);
+        const paginatedItems = empleadosToShow.slice(startIndex, endIndex);
         
         const tablaEmpleados = document.getElementById('tablaEmpleados');
         tablaEmpleados.innerHTML = '';
@@ -309,13 +312,16 @@
         });
         
         // Actualizar información de paginación
+        const totalItemsToShow = empleadosToShow.length;
         document.getElementById('infoPaginacion').textContent = 
-            `Mostrando ${startIndex + 1} a ${Math.min(endIndex, totalItems)} de ${totalItems} empleados`;
+            `Mostrando ${startIndex + 1} a ${Math.min(endIndex, totalItemsToShow)} de ${totalItemsToShow} empleados`;
     }
 
     // Función para renderizar los controles de paginación
     function renderPagination() {
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const empleadosToShow = filteredEmpleados || allEmpleados;
+        const totalItemsToShow = empleadosToShow.length;
+        const totalPages = Math.ceil(totalItemsToShow / itemsPerPage);
         const pagination = document.getElementById('paginacion');
         pagination.innerHTML = '';
         
@@ -410,15 +416,14 @@
         pagination.appendChild(nextLi);
     }
     
-    // Implementación de búsqueda
+  
     document.getElementById('buscarEmpleado').addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
         
         if (searchTerm.length > 0) {
-            // Si hay término de búsqueda, filtrar los empleados
-            const filtered = allEmpleados.filter(empleado => 
-                empleado.nombre.toLowerCase().includes(searchTerm) || 
-                empleado.apellidos.toLowerCase().includes(searchTerm) ||
+            // Filtrar empleados
+            filteredEmpleados = allEmpleados.filter(empleado => 
+                (empleado.nombre + ' ' + empleado.apellidos).toLowerCase().includes(searchTerm) || 
                 empleado.email.toLowerCase().includes(searchTerm) ||
                 empleado.telefono.includes(searchTerm) ||
                 empleado.rol.toLowerCase().includes(searchTerm)
@@ -428,42 +433,18 @@
             const resultados = document.getElementById('resultadosBusqueda');
             resultados.innerHTML = '';
             
-            if (filtered.length > 0) {
-                filtered.slice(0, 5).forEach(empleado => {
-                    const item = document.createElement('a');
-                    item.className = 'dropdown-item';
-                    item.href = '#';
-                    item.innerHTML = `
-                        <div class="d-flex justify-content-between">
-                            <span>${empleado.nombre} ${empleado.apellidos}</span>
-                            <span class="text-muted">${empleado.rol}</span>
-                        </div>
-                        <small class="text-muted d-block">${empleado.email}</small>
-                    `;
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        allEmpleados = [empleado];
-                        currentPage = 1;
-                        renderTable();
-                        renderPagination();
-                        this.value = '';
-                        resultados.style.display = 'none';
-                    });
-                    resultados.appendChild(item);
-                });
-                
-                resultados.style.display = 'block';
-            } else {
-                const item = document.createElement('a');
-                item.className = 'dropdown-item disabled';
-                item.textContent = 'No se encontraron resultados';
-                resultados.appendChild(item);
-                resultados.style.display = 'block';
-            }
+            
+            // Actualizar tabla y paginación con resultados filtrados
+            currentPage = 1;
+            renderTable();
+            renderPagination();
         } else {
             // Si no hay término de búsqueda, restaurar todos los empleados
             document.getElementById('resultadosBusqueda').style.display = 'none';
-            fetchEmpleados();
+            filteredEmpleados = null;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
         }
     });
     

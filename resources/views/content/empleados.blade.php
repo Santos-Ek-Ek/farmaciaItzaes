@@ -66,7 +66,9 @@
                     <tr>
                         <td class="text-center">{{ $usuario->nombre }} {{ $usuario->apellidos }}</td>
                         <td class="text-center">{{ $usuario->email }}</td>
-                        <td class="text-center">{{ $usuario->telefono }}</td>
+                        <td class="text-center {{ empty($usuario->telefono) ? 'text-muted' : '' }}">
+                            {{ $usuario->telefono ?: 'No Agregado' }}
+                        </td>
                         <td class="text-center">
                             @if($usuario->rol == 'Administrador')
                                 <span class="badge bg-primary">Administrador</span>
@@ -291,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
         row.innerHTML = `
             <td class="text-center">${empleado.nombre} ${empleado.apellidos}</td>
             <td class="text-center">${empleado.email}</td>
-            <td class="text-center">${empleado.telefono}</td>
+           <td class="text-center">${empleado.telefono ? empleado.telefono : 'No Agregado'}</td>
             <td class="text-center">
                 ${empleado.rol === 'Administrador' 
                     ? '<span class="badge bg-primary">Administrador</span>' 

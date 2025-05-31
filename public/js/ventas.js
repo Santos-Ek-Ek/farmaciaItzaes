@@ -412,7 +412,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 document.querySelector('.btn-success').addEventListener('click', function() {
     if (productosEnTabla.length === 0) {
-        alert('No hay productos en la venta');
+        // Notificación estilo toast en la parte superior
+        Swal.fire({
+            position: 'top',
+            icon: 'warning',
+            title: 'No hay productos en la venta',
+            showConfirmButton: false,
+            timer: 3000,
+            toast: true,
+            background: '#fff3cd', // Fondo amarillo claro como alerta
+            iconColor: '#856404', // Color del icono acorde
+            width: '400px',
+            customClass: {
+                title: 'text-dark' // Texto oscuro para mejor contraste
+            }
+        });
         return;
     }
     
@@ -507,7 +521,6 @@ function configurarCalculoCambio(totalVenta) {
             }
         }
         
-        // Aquí iría la lógica para procesar el cobro
         procesarCobro(totalVenta, metodo);
     });
 }

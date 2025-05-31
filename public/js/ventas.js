@@ -513,13 +513,22 @@ function configurarCalculoCambio(totalVenta) {
     document.getElementById('confirmarCobro').addEventListener('click', function() {
         const metodo = metodoPago.value;
         
-        if (metodo === 'efectivo') {
-            const monto = parseFloat(montoRecibido.value) || 0;
-            if (monto < totalVenta) {
-                alert('El monto recibido es insuficiente');
-                return;
-            }
-        }
+if (metodo === 'efectivo') {
+    const monto = parseFloat(montoRecibido.value) || 0;
+    if (monto < totalVenta) {
+        Swal.fire({
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Monto insuficiente',
+            showConfirmButton: false,
+            timer: 2500,
+            toast: true,
+            background: '#fff3cd',
+            iconColor: '#856404'
+        });
+        return;
+    }
+}
         
         procesarCobro(totalVenta, metodo);
     });

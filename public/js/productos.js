@@ -13,67 +13,69 @@ document.getElementById('btnGuardarProducto').addEventListener('click', function
     // Usar la URL del atributo action del formulario
     const url = form.getAttribute('action');
     
-    fetch(url, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if(data.success) {
-            // Mostrar mensaje de éxito con SweetAlert o similar
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message,
-                confirmButton: false,
-                timer: 2000,
-            }).then(() => {
-                // Cerrar el modal
+fetch(url, {
+    method: 'POST',
+    body: formData,
+    headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'Accept': 'application/json'
+    }
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error('Error en la respuesta del servidor');
+    }
+    return response.json();
+})
+.then(data => {
+    if(data.success) {
+        // Mensaje de éxito 
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: data.message,
+            showConfirmButton: false,
+            timer: 2000,            
+            timerProgressBar: true,   
+            willClose: () => {
+                // Acciones que se ejecutan al cerrarse
                 agregarProductoModal.hide();
-                // Recargar la página
                 location.reload();
+            }
+        });
+
+    } else {
+        // Manejo de errores
+        if (data.errors) {
+            let errors = '';
+            for (const error in data.errors) {
+                errors += `${data.errors[error][0]}\n`;
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de validación',
+                text: errors,
+                confirmButtonText: 'Aceptar'
             });
         } else {
-            // Mostrar errores de validación
-            if (data.errors) {
-                let errors = '';
-                for (const error in data.errors) {
-                    errors += `${data.errors[error][0]}\n`;
-                }
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de validación',
-                    text: errors,
-                    confirmButtonText: 'Aceptar'
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.message,
-                    confirmButtonText: 'Aceptar'
-                });
-            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                confirmButtonText: 'Aceptar'
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Ocurrió un error al guardar el producto',
-            confirmButtonText: 'Aceptar'
-        });
+    }
+})
+.catch(error => {
+    console.error('Error:', error);
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al guardar el producto',
+        confirmButtonText: 'Aceptar'
     });
+});
 });
     });
 
@@ -143,29 +145,51 @@ function cargarDatosProducto(id) {
         const productoId = document.getElementById('edit_id').value;
         
         fetch(`/productos/${productoId}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json',
-                'X-HTTP-Method-Override': 'PUT'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                alert(data.message);
+    method: 'POST',
+    body: formData,
+    headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json',
+        'X-HTTP-Method-Override': 'PUT'
+    }
+})
+.then(response => response.json())
+.then(data => {
+    if(data.success) {
+        // Notificación de éxito 
+        Swal.fire({
+            icon: 'success',
+            title: '¡Actualizado!',
+            text: data.message,
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+            willClose: () => {
+                // Cerrar modal y recargar cuando se cierre la alerta
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editarProductoModal'));
                 modal.hide();
                 location.reload();
-            } else {
-                alert('Error: ' + data.message);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Ocurrió un error al actualizar el producto');
         });
+    } else {
+        // Notificación de error
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message,
+            confirmButtonText: 'Entendido'
+        });
+    }
+})
+.catch(error => {
+    console.error('Error:', error);
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al actualizar el producto',
+        confirmButtonText: 'Entendido'
+    });
+});
     });
 });
 
@@ -187,7 +211,7 @@ document.querySelectorAll('.btn-eliminar').forEach(btn => {
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/productos-eliminar/${productoId}`, {
-                    method: 'PUT', // Usar POST pero con _method=DELETE
+                    method: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json',
@@ -200,26 +224,34 @@ document.querySelectorAll('.btn-eliminar').forEach(btn => {
                 .then(response => response.json())
                 .then(data => {
                     if(data.success) {
-                        Swal.fire(
-                            '¡Eliminado!',
-                            data.message,
-                            'success'
-                        ).then(() => location.reload());
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: data.message,
+                            icon: 'success',
+                            showConfirmButton: false,  
+                            timer: 1500,              
+                            timerProgressBar: true,   
+                            willClose: () => {
+                                location.reload();   
+                            }
+                        });
                     } else {
-                        Swal.fire(
-                            'Error',
-                            data.message,
-                            'error'
-                        );
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonText: 'Entendido'
+                        });
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    Swal.fire(
-                        'Error',
-                        'Ocurrió un error al eliminar el producto',
-                        'error'
-                    );
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Ocurrió un error al eliminar el producto',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
                 });
             }
         });

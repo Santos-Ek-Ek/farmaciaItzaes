@@ -434,7 +434,8 @@ public function generarReporteVenta(Request $request)
                 v.numero_venta,
                 v.cantidad, 
                 v.subtotal, 
-                pr.nombre
+                pr.nombre,
+                pr.unidad_medida
             FROM pagos p
             INNER JOIN ventas v ON p.numero_venta = v.numero_venta
             INNER JOIN productos pr ON v.producto_id = pr.id

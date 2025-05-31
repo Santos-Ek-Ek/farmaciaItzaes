@@ -34,7 +34,8 @@ document.getElementById('btnGuardarProducto').addEventListener('click', function
                 icon: 'success',
                 title: 'Éxito',
                 text: data.message,
-                confirmButtonText: 'Aceptar'
+                confirmButton: false,
+                timer: 2000,
             }).then(() => {
                 // Cerrar el modal
                 agregarProductoModal.hide();

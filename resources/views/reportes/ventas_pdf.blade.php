@@ -36,7 +36,7 @@
                 <tr>
                     <td>{{ $venta->numero_venta }}</td>
                     <td>{{ date('d/m/Y', strtotime($venta->fecha_venta)) }}</td>
-                    <td>{{ $venta->nombre }}</td>
+                    <td>{{ $venta->nombre }} - {{ $venta->unidad_medida }}</td>
                     <td class="text-center">{{ $venta->cantidad }}</td>
                     <td class="text-right">${{ number_format($venta->subtotal, 2) }}</td>
                 </tr>

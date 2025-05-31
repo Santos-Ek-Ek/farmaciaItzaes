@@ -143,7 +143,7 @@
                 {{ $producto->cantidad_minima }}
             </td>
             <td class="text-center align-middle prod_cad" style="width: 15%;">
-                {{ $producto->dia_llegada ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}
+                {{ $producto->dia_llegada ? \Carbon\Carbon::parse($producto->dia_llegada)->format('d/m/Y') : 'N/A' }}
             </td>
             <td class="text-center align-middle prod_cad" style="width: 15%;">
                 {{ $producto->fecha_caducidad ? \Carbon\Carbon::parse($producto->fecha_caducidad)->format('d/m/Y') : 'N/A' }}

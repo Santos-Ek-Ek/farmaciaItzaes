@@ -137,7 +137,17 @@ public function update(Request $request, $id)
             $validatedData['imagen'] = 'imgProductos/'.$imagenNombre;
         }
 
-        $producto->update($validatedData);
+        $producto->nombre = $validatedData['nombre'];
+        $producto->cantidad = $validatedData['cantidad'];
+        $producto->cantidad_minima = $validatedData['cantidad_minima'];
+        $producto->precio = $validatedData['precio'];
+        $producto->dia_llegada = $validatedData['dia_llegada'];
+        $producto->fecha_caducidad = $validatedData['fecha_caducidad'];
+        $producto->categoria_id = $validatedData['categoria_id'];
+        $producto->unidad_medida = $validatedData['unidad_medida'];
+        $producto->descripcion = $validatedData['descripcion'];
+
+        $producto->save();
 
         return response()->json([
             'success' => true,
